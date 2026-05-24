@@ -576,7 +576,15 @@ body {
         <div class="s-row-sub"   id="bell-sound-status">Loading…</div>
       </div>
       <button class="btn-ghost" id="preview-bell-btn"
-        style="width:auto;padding:8px 14px;font-size:13px;flex:none;border-color:var(--border-hi);color:var(--dim);">▶ Preview</button>
+        style="width:auto;padding:8px 14px;font-size:13px;flex:none;border-color:var(--border-hi);color:var(--dim);">▶ Bell</button>
+    </div>
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label">Test Tone</div>
+        <div class="s-row-sub">Confirms audio is working at all</div>
+      </div>
+      <button class="btn-ghost" id="test-tone-btn"
+        style="width:auto;padding:8px 14px;font-size:13px;flex:none;border-color:var(--border-hi);color:var(--dim);">▶ Tone</button>
     </div>
   </div>
 
@@ -700,6 +708,26 @@ function playBell(when, strikes) {
 }
 
 window.previewSound = function() { ringBell(1); };
+
+function playTestTone() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 440;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 1.2);
+    console.log('test tone: AudioContext ok, state=' + ctx.state);
+  } catch(e) {
+    console.error('test tone failed:', e);
+    alert('Audio context error: ' + e.message);
+  }
+}
 
 /* ─── NOTIFY / VIBRATE ─── */
 function notify(title, body) {
@@ -869,6 +897,9 @@ document.getElementById('btn-play').addEventListener('click', function() {
 });
 document.getElementById('preview-bell-btn').addEventListener('click', function() {
   ringBell(1);
+});
+document.getElementById('test-tone-btn').addEventListener('click', function() {
+  playTestTone();
 });
 let cancelHold;
 document.getElementById('btn-cancel').addEventListener('click', cancelTimer);
