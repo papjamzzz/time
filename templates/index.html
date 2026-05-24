@@ -698,7 +698,7 @@ function getAudioCtx() {
 }
 
 // Fetch and decode bell MP3 into an AudioBuffer on load
-fetch('/static/sounds/Soft_Bell_Hit.mp3')
+fetch('/static/sounds/Soft_Bell_Hit.wav')
   .then(function(r) { return r.arrayBuffer(); })
   .then(function(ab) {
     getAudioCtx().decodeAudioData(ab,
