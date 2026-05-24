@@ -690,7 +690,7 @@ function playBell(when = 0, strikes = 1) {
     for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i*1.4);
     return;
   }
-  fetch(`/sounds/${S.sound}`).then(r=>r.arrayBuffer()).then(buf=>{
+  fetch(`/sounds/${encodeURIComponent(S.sound)}`).then(r=>r.arrayBuffer()).then(buf=>{
     ctx.decodeAudioData(buf, dec=>{
       for (let i=0; i<strikes; i++) {
         const src=ctx.createBufferSource(); src.buffer=dec; src.connect(ctx.destination);
@@ -968,8 +968,8 @@ async function loadSounds() {
       row.className='sound-row'+(S.sound===s.filename?' active':'');
       row.dataset.sound=s.filename;
       row.innerHTML=`<div class="sound-dot"></div><div class="sound-name">${s.name}</div>
-        <button class="sound-preview" onclick="previewSound('${s.filename}')">▶</button>
-        <button class="sound-preview" style="color:var(--danger)" onclick="deleteSound('${s.filename}')">✕</button>`;
+        <button class="sound-preview" onclick="previewSound(${JSON.stringify(s.filename)})">▶</button>
+        <button class="sound-preview" style="color:var(--danger)" onclick="deleteSound(${JSON.stringify(s.filename)})">✕</button>`;
       sl.appendChild(row);
     });
     sl.querySelectorAll('.sound-row').forEach(r=>
@@ -987,7 +987,7 @@ async function loadSounds() {
   } catch(e){}
 }
 window.deleteSound=async function(fn) {
-  await fetch(`/api/sounds/${fn}`,{method:'DELETE'});
+  await fetch(`/api/sounds/${encodeURIComponent(fn)}`,{method:'DELETE'});
   if(S.sound===fn) S.sound='synth'; loadSounds();
 };
 const uploadZone=document.getElementById('upload-zone');
