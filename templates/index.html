@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Time">
+<meta name="theme-color" content="#0f0f12">
+<title>Time</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:        #0f0f12;
+  --surface:   #1a1a20;
+  --surface2:  #222229;
+  --border:    rgba(255,255,255,0.08);
+  --border-hi: rgba(255,255,255,0.16);
+  --text:      rgba(255,255,255,0.92);
+  --dim:       rgba(255,255,255,0.40);
+  --dimmer:    rgba(255,255,255,0.22);
+  --accent:    #a78bfa;        /* soft violet */
+  --accent2:   #34d399;        /* mint green for active/running */
+  --danger:    rgba(255,90,90,0.85);
+  --radius:    16px;
+  --radius-sm: 10px;
+  --safe-top:  env(safe-area-inset-top, 0px);
+  --safe-bot:  env(safe-area-inset-bottom, 0px);
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding-top: calc(var(--safe-top) + 0px);
+  padding-bottom: calc(var(--safe-bot) + 0px);
+  overflow-x: hidden;
+}
+
+/* ── LAYOUT ── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  padding-top: calc(var(--safe-top) + 16px);
+}
+.header-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--dim);
+  font-size: 16px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.icon-btn:active, .icon-btn.active { background: var(--surface2); color: var(--text); border-color: var(--border-hi); }
+.icon-btn svg { width: 18px; height: 18px; }
+
+/* ── MAIN TIMER SECTION ── */
+.main { flex: 1; display: flex; flex-direction: column; padding: 0 20px; }
+
+.timer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 32px 24px 28px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.timer-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(167,139,250,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Ring */
+.ring-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 24px;
+}
+.ring-svg { width: 200px; height: 200px; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--surface2); stroke-width: 6; }
+.ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear, stroke 0.4s;
+  stroke-dasharray: 565.48;
+  stroke-dashoffset: 0;
+}
+.ring-progress.running { stroke: var(--accent2); }
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.timer-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 44px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1;
+}
+.timer-display.running { color: var(--accent2); }
+.timer-status {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Interval dots */
+.interval-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  min-height: 10px;
+  margin-bottom: 4px;
+}
+.interval-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border-hi);
+  transition: background 0.3s;
+}
+.interval-dot.done { background: var(--accent2); border-color: var(--accent2); }
+.interval-dot.active { background: var(--accent); border-color: var(--accent); }
+
+/* Config summary */
+.config-summary {
+  font-size: 13px;
+  color: var(--dim);
+  margin-top: 8px;
+}
+
+/* ── CONTROLS ── */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+.btn {
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.btn:active { transform: scale(0.94); }
+
+.btn-play {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 0 rgba(167,139,250,0.4);
+}
+.btn-play.running {
+  background: var(--accent2);
+  box-shadow: 0 0 0 0 rgba(52,211,153,0.4);
+}
+.btn-play:active { box-shadow: none; }
+
+.btn-secondary {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-secondary:active { color: var(--text); border-color: var(--border-hi); }
+
+/* ── QUICK PRESETS ── */
+.presets-section { margin-bottom: 16px; }
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+.presets-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.presets-scroll::-webkit-scrollbar { display: none; }
+.preset-chip {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 100px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dim);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.preset-chip:active, .preset-chip.active {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.preset-chip.user-preset { padding-right: 12px; }
+.preset-chip .preset-del {
+  display: none;
+  position: absolute;
+  top: -5px; right: -5px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.preset-chip.deleting .preset-del { display: flex; }
+.preset-add {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: var(--dim);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── BOTTOM SHEET / DRAWER ── */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.sheet-overlay.open { opacity: 1; pointer-events: all; }
+
+.sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 0 20px calc(var(--safe-bot) + 20px);
+  z-index: 101;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 90dvh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sheet::-webkit-scrollbar { display: none; }
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: var(--border-hi);
+  margin: 12px auto 20px;
+}
+.sheet-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* ── FORM ELEMENTS ── */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dim);
+}
+.form-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  padding: 12px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--dimmer); }
+
+.form-row-inline {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.form-row-inline .form-row { flex: 1; margin-bottom: 0; }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; }
+.toggle-label { font-size: 15px; }
+.toggle-sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
+
+/* iOS-style toggle */
+.toggle {
+  width: 51px; height: 31px;
+  background: var(--surface2);
+  border-radius: 100px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 25px; height: 25px;
+  border-radius: 50%;
+  background: #fff;
+  top: 2px; left: 2px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.toggle.on::after { transform: translateX(20px); }
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* Sound picker */
+.sound-list { display: flex; flex-direction: column; gap: 8px; }
+.sound-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sound-row.active { border-color: var(--accent); background: rgba(167,139,250,0.1); }
+.sound-row:active { opacity: 0.7; }
+.sound-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-hi);
+  flex-shrink: 0;
+}
+.sound-row.active .sound-dot { background: var(--accent); border-color: var(--accent); }
+.sound-name { font-size: 14px; flex: 1; }
+.sound-preview {
+  font-size: 12px;
+  color: var(--dim);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.synth-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: rgba(167,139,250,0.15);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* Upload zone */
+.upload-zone {
+  border: 1.5px dashed var(--border-hi);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 8px;
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(167,139,250,0.05); }
+.upload-zone input { display: none; }
+.upload-icon { font-size: 24px; margin-bottom: 6px; }
+.upload-text { font-size: 14px; color: var(--dim); }
+.upload-sub { font-size: 12px; color: var(--dimmer); margin-top: 4px; }
+
+/* Log sheet */
+.log-list { display: flex; flex-direction: column; gap: 8px; }
+.log-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+.log-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent2);
+  flex-shrink: 0;
+}
+.log-dot.partial { background: var(--accent); }
+.log-info { flex: 1; }
+.log-duration { font-size: 15px; font-weight: 500; }
+.log-date { font-size: 12px; color: var(--dim); margin-top: 2px; }
+.log-badge {
+  font-size: 11px;
+  color: var(--dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+.log-empty {
+  text-align: center;
+  color: var(--dim);
+  font-size: 14px;
+  padding: 32px 0;
+}
+.log-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.btn-ghost {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.btn-ghost:active { opacity: 0.7; }
+.btn-ghost.accent { color: var(--accent2); border-color: var(--accent2); background: rgba(52,211,153,0.08); }
+
+/* Primary button */
+.btn-primary {
+  width: 100%;
+  padding: 15px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  border: none;
+  cursor: pointer;
+  margin-top: 8px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
+}
+.btn-primary:active { opacity: 0.8; }
+
+/* ── CONFIG SHEET ── */
+.duration-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.dur-chip {
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dim);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.dur-chip:active, .dur-chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(167,139,250,0.1);
+}
+
+/* custom time input row */
+.time-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.time-seg {
+  flex: 1;
+  text-align: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  padding: 12px 4px;
+  outline: none;
+  -webkit-appearance: none;
+  width: 0;
+}
+.time-seg:focus { border-color: var(--accent); }
+.time-colon { font-size: 20px; color: var(--dim); font-family: 'JetBrains Mono', monospace; }
+
+/* Interval inline inputs */
+.interval-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.interval-row .form-input { text-align: center; }
+
+/* Notification mode badge */
+.mode-pills {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 0;
+}
+.mode-pill {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dim);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mode-pill.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(167,139,250,0.1);
+}
+
+/* Shortcuts section */
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.shortcut-row .form-input { flex: 1; }
+
+/* ── RUNNING STATE overlay line ── */
+.progress-bar-wrap {
+  height: 3px;
+  background: var(--surface2);
+  border-radius: 2px;
+  margin-top: 20px;
+  overflow: hidden;
+  display: none;
+}
+.progress-bar-wrap.visible { display: block; }
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent2);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 1s linear;
+}
+
+/* ── COMPLETED FLASH ── */
+@keyframes completePulse {
+  0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+  70% { box-shadow: 0 0 0 20px rgba(52,211,153,0); }
+  100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+}
+.timer-card.completed { animation: completePulse 0.8s ease-out; }
+
+/* ── RESPONSIVE ── */
+@media (min-height: 700px) {
+  .main { padding: 0 20px; gap: 16px; }
+  .timer-card { padding: 36px 24px 32px; }
+}
+@media (max-height: 600px) {
+  .ring-wrap { width: 160px; height: 160px; }
+  .ring-svg { width: 160px; height: 160px; }
+  .timer-display { font-size: 34px; }
+}
+
+/* ── UTILS ── */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <span class="header-title">Time</span>
+    <div class="header-actions">
+      <div class="icon-btn" id="log-btn" title="Session log">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="1"/>
+          <line x1="9" y1="12" x2="15" y2="12"/>
+          <line x1="9" y1="16" x2="12" y2="16"/>
+        </svg>
+      </div>
+      <div class="icon-btn" id="settings-btn" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TIMER CARD -->
+    <div class="timer-card" id="timer-card">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 200 200">
+          <circle class="ring-track" cx="100" cy="100" r="90"/>
+          <circle class="ring-progress" id="ring-progress" cx="100" cy="100" r="90"/>
+        </svg>
+        <div class="ring-center">
+          <div class="timer-display" id="timer-display">1:00:00</div>
+          <div class="timer-status" id="timer-status">ready</div>
+        </div>
+      </div>
+      <div class="interval-dots" id="interval-dots"></div>
+      <div class="config-summary" id="config-summary">1 hour · no intervals</div>
+      <div class="progress-bar-wrap" id="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <button class="btn btn-secondary" id="btn-cancel" title="Cancel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <button class="btn btn-play" id="btn-play">
+        <svg id="play-icon" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        <svg id="pause-icon" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+      </button>
+      <button class="btn btn-secondary" id="btn-config" title="Configure">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="18" x2="14" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- PRESETS -->
+    <div class="presets-section">
+      <div class="section-label">Presets</div>
+      <div class="presets-scroll" id="presets-scroll">
+        <!-- built-in -->
+        <div class="preset-chip" data-min="5">5 min</div>
+        <div class="preset-chip" data-min="10">10 min</div>
+        <div class="preset-chip" data-min="20">20 min</div>
+        <div class="preset-chip" data-min="30">30 min</div>
+        <div class="preset-chip active" data-min="60">1 hour</div>
+        <div class="preset-chip" data-min="120">2 hours</div>
+        <!-- user presets rendered by JS -->
+        <div class="preset-add" id="preset-add" title="Save current config as preset">+</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ SHEETS ═══ -->
+<div class="sheet-overlay" id="overlay"></div>
+
+<!-- CONFIG SHEET -->
+<div class="sheet" id="config-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Configure Timer</div>
+
+  <div class="form-row">
+    <div class="form-label">Duration</div>
+    <div class="duration-grid">
+      <div class="dur-chip" data-min="5">5 min</div>
+      <div class="dur-chip" data-min="10">10 min</div>
+      <div class="dur-chip" data-min="15">15 min</div>
+      <div class="dur-chip" data-min="20">20 min</div>
+      <div class="dur-chip" data-min="30">30 min</div>
+      <div class="dur-chip" data-min="45">45 min</div>
+      <div class="dur-chip active" data-min="60">1 hour</div>
+      <div class="dur-chip" data-min="90">90 min</div>
+      <div class="dur-chip" data-min="120">2 hours</div>
+    </div>
+    <div class="time-input-row mt-8">
+      <input class="time-seg form-input" id="custom-h" type="number" min="0" max="23" placeholder="h">
+      <span class="time-colon">:</span>
+      <input class="time-seg form-input" id="custom-m" type="number" min="0" max="59" placeholder="mm">
+      <span class="time-colon">:</span>
+      <input class="time-seg form-input" id="custom-s" type="number" min="0" max="59" placeholder="ss">
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="form-row">
+    <div class="form-label">Intervals</div>
+    <div class="toggle-row" style="padding-top:0; border-bottom:none; margin-bottom:8px;">
+      <div>
+        <div class="toggle-label">Enable intervals</div>
+        <div class="toggle-sub">Bell at end of each equal interval</div>
+      </div>
+      <div class="toggle" id="interval-toggle"></div>
+    </div>
+    <div id="interval-fields" class="hidden">
+      <div class="interval-row">
+        <input class="form-input" id="interval-count" type="number" min="1" max="20" value="2" placeholder="# intervals" style="text-align:center;">
+        <span style="color:var(--dim); font-size:13px; flex-shrink:0;">equal parts</span>
+      </div>
+      <div class="toggle-sub mt-8" id="interval-preview">2 intervals of 30 min each</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="form-row">
+    <div class="form-label">Alert Mode</div>
+    <div class="mode-pills">
+      <div class="mode-pill active" data-mode="audio">🔔 Audio</div>
+      <div class="mode-pill" data-mode="notify">📳 Vibrate / Notify</div>
+      <div class="mode-pill" data-mode="silent">🔕 Silent</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="form-row">
+    <div class="form-label">Sounds</div>
+
+    <div class="toggle-row" style="padding-top:0; border:none; margin-bottom:4px;">
+      <div class="toggle-label">Start bell</div>
+      <div class="toggle on" id="start-bell-toggle"></div>
+    </div>
+    <div class="toggle-row" style="padding-top:0; border:none; margin-bottom:4px;">
+      <div class="toggle-label">End bell</div>
+      <div class="toggle on" id="end-bell-toggle"></div>
+    </div>
+    <div class="toggle-row" style="padding-top:0; border:none; margin-bottom:12px;">
+      <div>
+        <div class="toggle-label">Interval bells</div>
+      </div>
+      <div class="toggle on" id="interval-bell-toggle"></div>
+    </div>
+
+    <div class="form-label mt-8">Sound file</div>
+    <div class="sound-list" id="sound-list">
+      <div class="sound-row active" data-sound="synth">
+        <div class="sound-dot"></div>
+        <div class="sound-name">Synthesized Bell</div>
+        <span class="synth-badge">BUILT-IN</span>
+        <button class="sound-preview" onclick="previewSound('synth')">▶</button>
+      </div>
+    </div>
+
+    <div class="upload-zone mt-12" id="upload-zone">
+      <input type="file" id="sound-upload" accept=".wav,.mp3,.aif,.aiff,.ogg,.m4a,.flac" multiple>
+      <div class="upload-icon">🎵</div>
+      <div class="upload-text">Upload audio files</div>
+      <div class="upload-sub">WAV · MP3 · AIFF · OGG · M4A</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="form-row">
+    <div class="form-label">iOS Shortcuts</div>
+    <div class="toggle-row" style="padding-top:0; border:none; margin-bottom:8px;">
+      <div>
+        <div class="toggle-label">Trigger on start</div>
+        <div class="toggle-sub">e.g. activate Do Not Disturb</div>
+      </div>
+      <div class="toggle" id="shortcut-start-toggle"></div>
+    </div>
+    <div id="shortcut-start-fields" class="hidden">
+      <div class="shortcut-row">
+        <input class="form-input" id="shortcut-start-name" type="text" placeholder="Shortcut name">
+      </div>
+    </div>
+    <div class="toggle-row" style="padding-top:8px; border:none; margin-bottom:8px;">
+      <div>
+        <div class="toggle-label">Trigger on end</div>
+        <div class="toggle-sub">e.g. deactivate Do Not Disturb</div>
+      </div>
+      <div class="toggle" id="shortcut-end-toggle"></div>
+    </div>
+    <div id="shortcut-end-fields" class="hidden">
+      <div class="shortcut-row">
+        <input class="form-input" id="shortcut-end-name" type="text" placeholder="Shortcut name">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="config-save">Apply</button>
+</div>
+
+<!-- LOG SHEET -->
+<div class="sheet" id="log-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Session Log</div>
+  <div class="log-actions">
+    <button class="btn-ghost accent" id="health-export-btn">Export to Apple Health</button>
+    <button class="btn-ghost" id="csv-export-btn">Download CSV</button>
+  </div>
+  <div class="log-list" id="log-list"></div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet" id="settings-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Settings</div>
+  <div class="toggle-row">
+    <div>
+      <div class="toggle-label">Wake Lock</div>
+      <div class="toggle-sub">Keep screen on during session</div>
+    </div>
+    <div class="toggle on" id="wakelock-toggle"></div>
+  </div>
+  <div class="toggle-row">
+    <div>
+      <div class="toggle-label">Notifications permission</div>
+      <div class="toggle-sub" id="notif-status-text">Tap to request</div>
+    </div>
+    <button class="btn-ghost" id="request-notif-btn" style="width:auto; padding:8px 14px; flex-shrink:0; font-size:13px;">Request</button>
+  </div>
+  <div class="toggle-row">
+    <div>
+      <div class="toggle-label">Strike count</div>
+      <div class="toggle-sub">How many times the bell rings</div>
+    </div>
+    <input class="form-input" id="strike-count" type="number" min="1" max="9" value="1" style="width:64px; text-align:center; flex-shrink:0;">
+  </div>
+  <div class="divider"></div>
+  <div class="form-row">
+    <div class="form-label">Clear session log</div>
+    <button class="btn-ghost" id="clear-log-btn" style="color:var(--danger); border-color:var(--danger);">Clear all sessions</button>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+'use strict';
+
+/* ─── STATE ─── */
+const S = {
+  durationSec: 3600,
+  intervalCount: 0,
+  alertMode: 'audio',
+  startBell: true,
+  endBell: true,
+  intervalBell: true,
+  sound: 'synth',
+  strikes: 1,
+  wakeLock: true,
+  shortcutStart: '',
+  shortcutEnd: '',
+};
+
+let running = false;
+let paused = false;
+let remainSec = 3600;
+let totalSec = 3600;
+let tickInterval = null;
+let scheduledBells = [];
+let audioCtx = null;
+let wakeLockRef = null;
+
+/* ─── AUDIO ─── */
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function synthBell(ctx, when = 0, freq = 432, dur = 3) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const comp = ctx.createDynamicsCompressor();
+  osc.connect(gain); gain.connect(comp); comp.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, when);
+  osc.frequency.exponentialRampToValueAtTime(freq * 0.5, when + dur * 0.8);
+  gain.gain.setValueAtTime(0, when);
+  gain.gain.linearRampToValueAtTime(0.6, when + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, when + dur);
+  osc.start(when); osc.stop(when + dur + 0.1);
+  // overtone
+  const osc2 = ctx.createOscillator();
+  const gain2 = ctx.createGain();
+  osc2.connect(gain2); gain2.connect(ctx.destination);
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(freq * 2.756, when);
+  gain2.gain.setValueAtTime(0, when);
+  gain2.gain.linearRampToValueAtTime(0.18, when + 0.01);
+  gain2.gain.exponentialRampToValueAtTime(0.001, when + dur * 0.6);
+  osc2.start(when); osc2.stop(when + dur);
+}
+
+function playBell(when = 0, strikes = 1) {
+  const ctx = getAudioCtx();
+  if (S.sound === 'synth') {
+    for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i * 1.4);
+  } else {
+    fetch(`/sounds/${S.sound}`).then(r => r.arrayBuffer()).then(buf => {
+      ctx.decodeAudioData(buf, decoded => {
+        for (let i = 0; i < strikes; i++) {
+          const src = ctx.createBufferSource();
+          src.buffer = decoded;
+          src.connect(ctx.destination);
+          src.start(ctx.currentTime + when + i * 1.4);
+        }
+      });
+    }).catch(() => synthBell(ctx, ctx.currentTime + when));
+  }
+}
+
+function previewSound(filename) {
+  if (filename === 'synth') {
+    const ctx = getAudioCtx();
+    synthBell(ctx, ctx.currentTime);
+  } else {
+    playBell(0, 1);
+  }
+}
+
+/* ─── NOTIFICATIONS ─── */
+function sendNotification(title, body) {
+  if (Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '/static/icons/icon-192.png', silent: false });
+  }
+}
+
+/* ─── VIBRATE ─── */
+function vibrate(pattern = [200, 100, 200]) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+/* ─── WAKE LOCK ─── */
+async function acquireWakeLock() {
+  if (!S.wakeLock) return;
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLockRef = await navigator.wakeLock.request('screen');
+    }
+  } catch(e) {}
+}
+function releaseWakeLock() {
+  if (wakeLockRef) { wakeLockRef.release().catch(()=>{}); wakeLockRef = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && running && !paused) acquireWakeLock();
+});
+
+/* ─── iOS SHORTCUTS ─── */
+function triggerShortcut(name) {
+  if (!name) return;
+  const url = `shortcuts://run-shortcut?name=${encodeURIComponent(name)}`;
+  const a = document.createElement('a'); a.href = url; a.click();
+}
+
+/* ─── TIMER LOGIC ─── */
+function scheduleBells() {
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  scheduledBells = [];
+  if (S.startBell && (S.alertMode === 'audio')) {
+    playBell(0, S.strikes);
+  }
+  if (S.startBell && S.alertMode === 'notify') {
+    sendNotification('Time', 'Session started');
+    vibrate([200]);
+  }
+  if (S.intervalCount > 1 && S.intervalBell) {
+    const step = totalSec / S.intervalCount;
+    for (let i = 1; i < S.intervalCount; i++) {
+      const t = step * i;
+      scheduledBells.push({ at: t, type: 'interval', i });
+    }
+  }
+  scheduledBells.push({ at: totalSec, type: 'end' });
+}
+
+function checkBells() {
+  const elapsed = totalSec - remainSec;
+  scheduledBells.forEach(b => {
+    if (!b.fired && elapsed >= b.at) {
+      b.fired = true;
+      if (b.type === 'end') {
+        if (S.alertMode === 'audio' && S.endBell) playBell(0, S.strikes);
+        if (S.alertMode === 'notify') { sendNotification('Time', 'Session complete'); vibrate([400, 200, 400]); }
+        triggerShortcut(S.shortcutEnd);
+        onComplete();
+      } else {
+        if (S.alertMode === 'audio' && S.intervalBell) playBell(0, S.strikes);
+        if (S.alertMode === 'notify') { sendNotification('Time', `Interval ${b.i} complete`); vibrate([200]); }
+        updateIntervalDots(b.i);
+      }
+    }
+  });
+}
+
+function startTimer() {
+  if (paused) {
+    paused = false;
+    running = true;
+    setPlayState(true);
+    acquireWakeLock();
+    tick();
+    tickInterval = setInterval(tick, 1000);
+    return;
+  }
+  running = true;
+  paused = false;
+  remainSec = S.durationSec;
+  totalSec = S.durationSec;
+  setPlayState(true);
+  updateDisplay();
+  updateProgressBar();
+  buildIntervalDots();
+  triggerShortcut(S.shortcutStart);
+  scheduleBells();
+  acquireWakeLock();
+  tickInterval = setInterval(tick, 1000);
+}
+
+function pauseTimer() {
+  paused = true;
+  running = false;
+  clearInterval(tickInterval);
+  setPlayState(false);
+  releaseWakeLock();
+  document.getElementById('timer-status').textContent = 'paused';
+}
+
+function cancelTimer() {
+  if (!running && !paused && remainSec === S.durationSec) return; // nothing to cancel
+  const elapsed = totalSec - remainSec;
+  if (elapsed > 30) logSession(Math.round(elapsed / 60), false);
+  clearInterval(tickInterval);
+  running = false; paused = false;
+  remainSec = S.durationSec;
+  scheduledBells = [];
+  setPlayState(false);
+  releaseWakeLock();
+  updateDisplay();
+  updateProgressBar();
+  buildIntervalDots();
+  document.getElementById('timer-status').textContent = 'ready';
+  document.getElementById('timer-card').classList.remove('completed');
+}
+
+function restartTimer() {
+  clearInterval(tickInterval);
+  running = false; paused = false;
+  remainSec = S.durationSec;
+  scheduledBells = [];
+  releaseWakeLock();
+  updateDisplay();
+  updateProgressBar();
+  buildIntervalDots();
+  setPlayState(false);
+  document.getElementById('timer-status').textContent = 'ready';
+  document.getElementById('timer-card').classList.remove('completed');
+}
+
+function tick() {
+  if (remainSec <= 0) return;
+  remainSec--;
+  updateDisplay();
+  updateProgressBar();
+  checkBells();
+}
+
+function onComplete() {
+  clearInterval(tickInterval);
+  running = false; paused = false;
+  releaseWakeLock();
+  setPlayState(false);
+  document.getElementById('timer-display').textContent = '0:00:00';
+  document.getElementById('timer-status').textContent = 'complete';
+  document.getElementById('timer-card').classList.add('completed');
+  logSession(Math.round(S.durationSec / 60), true);
+  setTimeout(() => document.getElementById('timer-card').classList.remove('completed'), 1000);
+}
+
+function setPlayState(isRunning) {
+  document.getElementById('play-icon').style.display = isRunning ? 'none' : '';
+  document.getElementById('pause-icon').style.display = isRunning ? '' : 'none';
+  document.getElementById('btn-play').classList.toggle('running', isRunning);
+  document.getElementById('ring-progress').classList.toggle('running', isRunning);
+  document.getElementById('timer-display').classList.toggle('running', isRunning);
+}
+
+/* ─── DISPLAY ─── */
+function formatTime(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function updateDisplay() {
+  document.getElementById('timer-display').textContent = formatTime(remainSec);
+  if (running) document.getElementById('timer-status').textContent = 'running';
+}
+
+function updateProgressBar() {
+  const pct = totalSec > 0 ? ((totalSec - remainSec) / totalSec) * 100 : 0;
+  document.getElementById('progress-bar-fill').style.width = pct + '%';
+  document.getElementById('progress-bar-wrap').classList.toggle('visible', running || paused);
+  // ring
+  const circ = 565.48;
+  const offset = circ * (remainSec / totalSec);
+  document.getElementById('ring-progress').style.strokeDashoffset = offset;
+}
+
+function buildIntervalDots() {
+  const el = document.getElementById('interval-dots');
+  el.innerHTML = '';
+  if (S.intervalCount < 2) return;
+  for (let i = 0; i < S.intervalCount; i++) {
+    const d = document.createElement('div');
+    d.className = 'interval-dot';
+    d.dataset.idx = i;
+    el.appendChild(d);
+  }
+}
+
+function updateIntervalDots(completedIdx) {
+  document.querySelectorAll('.interval-dot').forEach((d, i) => {
+    if (i < completedIdx) d.classList.add('done');
+    else if (i === completedIdx) d.classList.add('active');
+  });
+}
+
+function updateConfigSummary() {
+  const mins = S.durationSec / 60;
+  const dur = mins >= 60
+    ? (mins % 60 === 0 ? Math.floor(mins/60) + (Math.floor(mins/60)===1?' hour':' hours')
+      : (mins/60).toFixed(1) + ' hrs')
+    : mins + ' min';
+  const intv = S.intervalCount > 1 ? ` · ${S.intervalCount} intervals` : ' · no intervals';
+  document.getElementById('config-summary').textContent = dur + intv;
+}
+
+/* ─── SHEETS ─── */
+function openSheet(id) {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById(id).classList.add('open');
+}
+function closeAllSheets() {
+  document.getElementById('overlay').classList.remove('open');
+  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+}
+document.getElementById('overlay').addEventListener('click', closeAllSheets);
+document.getElementById('settings-btn').addEventListener('click', () => openSheet('settings-sheet'));
+document.getElementById('log-btn').addEventListener('click', () => { renderLog(); openSheet('log-sheet'); });
+document.getElementById('btn-config').addEventListener('click', () => openSheet('config-sheet'));
+
+/* ─── CONTROLS ─── */
+document.getElementById('btn-play').addEventListener('click', () => {
+  if (running) pauseTimer();
+  else startTimer();
+});
+document.getElementById('btn-cancel').addEventListener('click', cancelTimer);
+
+/* long-press btn-cancel = restart */
+let cancelHold;
+document.getElementById('btn-cancel').addEventListener('pointerdown', () => {
+  cancelHold = setTimeout(() => { restartTimer(); }, 600);
+});
+document.getElementById('btn-cancel').addEventListener('pointerup', () => clearTimeout(cancelHold));
+document.getElementById('btn-cancel').addEventListener('pointerleave', () => clearTimeout(cancelHold));
+
+/* ─── CONFIG SHEET ─── */
+// Duration chips
+document.querySelectorAll('.dur-chip').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('.dur-chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    const min = parseInt(c.dataset.min);
+    setDuration(min * 60);
+    syncCustomInputs();
+  });
+});
+
+function setDuration(secs) {
+  S.durationSec = secs;
+  if (!running && !paused) {
+    remainSec = secs;
+    totalSec = secs;
+    updateDisplay();
+    updateProgressBar();
+  }
+  updateIntervalPreview();
+  updateConfigSummary();
+  syncPresetHighlight();
+}
+
+function syncCustomInputs() {
+  const h = Math.floor(S.durationSec / 3600);
+  const m = Math.floor((S.durationSec % 3600) / 60);
+  const s = S.durationSec % 60;
+  document.getElementById('custom-h').value = h || '';
+  document.getElementById('custom-m').value = m || '';
+  document.getElementById('custom-s').value = s || '';
+}
+
+['custom-h','custom-m','custom-s'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    const h = parseInt(document.getElementById('custom-h').value)||0;
+    const m = parseInt(document.getElementById('custom-m').value)||0;
+    const s = parseInt(document.getElementById('custom-s').value)||0;
+    const total = h*3600 + m*60 + s;
+    if (total > 0) {
+      document.querySelectorAll('.dur-chip').forEach(x => x.classList.remove('active'));
+      setDuration(total);
+    }
+  });
+});
+
+// Interval toggle
+const intervalToggle = document.getElementById('interval-toggle');
+intervalToggle.addEventListener('click', () => {
+  intervalToggle.classList.toggle('on');
+  const on = intervalToggle.classList.contains('on');
+  document.getElementById('interval-fields').classList.toggle('hidden', !on);
+  if (!on) { S.intervalCount = 0; buildIntervalDots(); updateConfigSummary(); }
+  else updateIntervalPreview();
+});
+
+document.getElementById('interval-count').addEventListener('input', updateIntervalPreview);
+
+function updateIntervalPreview() {
+  const on = intervalToggle.classList.contains('on');
+  if (!on) { S.intervalCount = 0; return; }
+  const n = Math.max(2, parseInt(document.getElementById('interval-count').value)||2);
+  S.intervalCount = n;
+  const eachSec = Math.floor(S.durationSec / n);
+  const eachMin = eachSec >= 60 ? (eachSec/60).toFixed(0) + ' min' : eachSec + ' sec';
+  document.getElementById('interval-preview').textContent = `${n} intervals of ${eachMin} each`;
+  buildIntervalDots();
+  updateConfigSummary();
+}
+
+// Alert mode
+document.querySelectorAll('.mode-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.mode-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    S.alertMode = p.dataset.mode;
+  });
+});
+
+// Bell toggles
+function wireToggle(id, key) {
+  const el = document.getElementById(id);
+  el.addEventListener('click', () => {
+    el.classList.toggle('on');
+    S[key] = el.classList.contains('on');
+  });
+}
+wireToggle('start-bell-toggle', 'startBell');
+wireToggle('end-bell-toggle', 'endBell');
+wireToggle('interval-bell-toggle', 'intervalBell');
+wireToggle('wakelock-toggle', 'wakeLock');
+
+// Shortcuts toggles
+wireToggleField('shortcut-start-toggle', 'shortcut-start-fields');
+wireToggleField('shortcut-end-toggle', 'shortcut-end-fields');
+function wireToggleField(toggleId, fieldId) {
+  document.getElementById(toggleId).addEventListener('click', () => {
+    const t = document.getElementById(toggleId);
+    t.classList.toggle('on');
+    document.getElementById(fieldId).classList.toggle('hidden', !t.classList.contains('on'));
+  });
+}
+document.getElementById('shortcut-start-name').addEventListener('input', e => S.shortcutStart = e.target.value);
+document.getElementById('shortcut-end-name').addEventListener('input', e => S.shortcutEnd = e.target.value);
+
+// Save config
+document.getElementById('config-save').addEventListener('click', () => {
+  S.strikes = parseInt(document.getElementById('strike-count').value)||1;
+  closeAllSheets();
+});
+
+/* ─── SOUNDS ─── */
+async function loadSounds() {
+  try {
+    const res = await fetch('/api/sounds');
+    const list = await res.json();
+    const sl = document.getElementById('sound-list');
+    sl.innerHTML = `
+      <div class="sound-row ${S.sound==='synth'?'active':''}" data-sound="synth">
+        <div class="sound-dot"></div>
+        <div class="sound-name">Synthesized Bell</div>
+        <span class="synth-badge">BUILT-IN</span>
+        <button class="sound-preview" onclick="previewSound('synth')">▶</button>
+      </div>`;
+    list.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'sound-row' + (S.sound===s.filename?' active':'');
+      row.dataset.sound = s.filename;
+      row.innerHTML = `
+        <div class="sound-dot"></div>
+        <div class="sound-name">${s.name}</div>
+        <button class="sound-preview" onclick="previewSound('${s.filename}')">▶</button>
+        <button class="sound-preview" style="background:rgba(255,90,90,0.1);border-color:rgba(255,90,90,0.3);color:var(--danger);" onclick="deleteSound('${s.filename}')">✕</button>`;
+      sl.appendChild(row);
+    });
+    sl.querySelectorAll('.sound-row').forEach(r => {
+      r.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') return;
+        sl.querySelectorAll('.sound-row').forEach(x => x.classList.remove('active'));
+        r.classList.add('active');
+        S.sound = r.dataset.sound;
+      });
+    });
+    if (list.length > 0 && S.sound === 'synth') {
+      S.sound = list[0].filename;
+      sl.querySelectorAll('.sound-row')[1]?.classList.add('active');
+      sl.querySelectorAll('.sound-row')[0]?.classList.remove('active');
+    }
+  } catch(e) {}
+}
+
+async function deleteSound(filename) {
+  await fetch(`/api/sounds/${filename}`, { method: 'DELETE' });
+  if (S.sound === filename) S.sound = 'synth';
+  loadSounds();
+}
+
+// Upload
+const uploadZone = document.getElementById('upload-zone');
+const soundUpload = document.getElementById('sound-upload');
+uploadZone.addEventListener('click', () => soundUpload.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag');
+  uploadFiles(e.dataTransfer.files);
+});
+soundUpload.addEventListener('change', () => uploadFiles(soundUpload.files));
+
+async function uploadFiles(files) {
+  for (const f of files) {
+    const fd = new FormData(); fd.append('file', f);
+    await fetch('/api/sounds/upload', { method: 'POST', body: fd });
+  }
+  loadSounds();
+}
+
+/* ─── PRESETS ─── */
+function loadUserPresets() {
+  try { return JSON.parse(localStorage.getItem('time_presets')||'[]'); } catch { return []; }
+}
+function saveUserPresets(p) { localStorage.setItem('time_presets', JSON.stringify(p)); }
+
+function renderPresets() {
+  const scroll = document.getElementById('presets-scroll');
+  const add = document.getElementById('preset-add');
+  // remove old user presets
+  scroll.querySelectorAll('.user-preset').forEach(x => x.remove());
+  loadUserPresets().forEach((p, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'preset-chip user-preset';
+    chip.textContent = p.label;
+    chip.dataset.idx = i;
+    const del = document.createElement('span');
+    del.className = 'preset-del';
+    del.textContent = '×';
+    chip.appendChild(del);
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      const presets = loadUserPresets();
+      presets.splice(i, 1);
+      saveUserPresets(presets);
+      renderPresets();
+    });
+    chip.addEventListener('click', () => applyPreset(p));
+    chip.addEventListener('pointerdown', () => {
+      chip._hold = setTimeout(() => chip.classList.add('deleting'), 600);
+    });
+    chip.addEventListener('pointerup', () => clearTimeout(chip._hold));
+    scroll.insertBefore(chip, add);
+  });
+}
+
+function applyPreset(p) {
+  S.durationSec = p.durationSec;
+  S.intervalCount = p.intervalCount || 0;
+  S.alertMode = p.alertMode || 'audio';
+  S.sound = p.sound || 'synth';
+  if (!running && !paused) {
+    remainSec = S.durationSec;
+    totalSec = S.durationSec;
+    updateDisplay();
+    updateProgressBar();
+  }
+  buildIntervalDots();
+  updateConfigSummary();
+  syncPresetHighlight();
+}
+
+function syncPresetHighlight() {
+  document.querySelectorAll('.preset-chip[data-min]').forEach(c => {
+    c.classList.toggle('active', parseInt(c.dataset.min)*60 === S.durationSec);
+  });
+}
+
+document.querySelectorAll('.preset-chip[data-min]').forEach(c => {
+  c.addEventListener('click', () => {
+    setDuration(parseInt(c.dataset.min) * 60);
+  });
+});
+
+document.getElementById('preset-add').addEventListener('click', () => {
+  const mins = S.durationSec / 60;
+  const label = mins >= 60
+    ? (mins % 60 === 0 ? Math.floor(mins/60) + 'h' : (mins/60).toFixed(1) + 'h')
+    : mins + 'm';
+  const presets = loadUserPresets();
+  presets.push({ label, durationSec: S.durationSec, intervalCount: S.intervalCount, alertMode: S.alertMode, sound: S.sound });
+  saveUserPresets(presets);
+  renderPresets();
+});
+
+/* ─── SESSION LOG ─── */
+function logSession(minutes, complete) {
+  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
+  sessions.unshift({
+    ts: Date.now(),
+    minutes,
+    complete,
+    intervalCount: S.intervalCount,
+  });
+  if (sessions.length > 200) sessions.length = 200;
+  localStorage.setItem('time_sessions', JSON.stringify(sessions));
+}
+
+function renderLog() {
+  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
+  const el = document.getElementById('log-list');
+  if (!sessions.length) {
+    el.innerHTML = '<div class="log-empty">No sessions yet.<br>Complete your first sit.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  sessions.forEach(s => {
+    const d = new Date(s.ts);
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const dur = s.minutes >= 60
+      ? (s.minutes % 60 === 0 ? Math.floor(s.minutes/60) + (Math.floor(s.minutes/60)===1?' hr':' hrs') : (s.minutes/60).toFixed(1) + ' hrs')
+      : s.minutes + ' min';
+    const row = document.createElement('div');
+    row.className = 'log-item';
+    row.innerHTML = `
+      <div class="log-dot ${s.complete?'':'partial'}"></div>
+      <div class="log-info">
+        <div class="log-duration">${dur}</div>
+        <div class="log-date">${dateStr} · ${timeStr}</div>
+      </div>
+      <span class="log-badge">${s.complete ? 'complete' : 'partial'}</span>`;
+    el.appendChild(row);
+  });
+}
+
+// Apple Health export
+document.getElementById('health-export-btn').addEventListener('click', () => {
+  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
+  if (!sessions.length) return;
+  const total = sessions.reduce((sum, s) => sum + s.minutes, 0);
+  const url = `shortcuts://run-shortcut?name=Log%20Mindful%20Minutes&input=text&text=${total}`;
+  window.location.href = url;
+});
+
+// CSV export
+document.getElementById('csv-export-btn').addEventListener('click', () => {
+  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
+  if (!sessions.length) return;
+  const header = 'Date,Time,Duration (min),Complete\n';
+  const rows = sessions.map(s => {
+    const d = new Date(s.ts);
+    return `${d.toLocaleDateString()},${d.toLocaleTimeString()},${s.minutes},${s.complete?'yes':'no'}`;
+  }).join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'time-sessions.csv';
+  a.click();
+});
+
+// Settings toggles
+document.getElementById('request-notif-btn').addEventListener('click', async () => {
+  const result = await Notification.requestPermission();
+  document.getElementById('notif-status-text').textContent = result === 'granted' ? 'Granted ✓' : 'Denied';
+});
+
+document.getElementById('strike-count').addEventListener('input', e => S.strikes = parseInt(e.target.value)||1);
+
+document.getElementById('clear-log-btn').addEventListener('click', () => {
+  if (confirm('Clear all sessions?')) {
+    localStorage.removeItem('time_sessions');
+    document.getElementById('log-list').innerHTML = '<div class="log-empty">No sessions yet.<br>Complete your first sit.</div>';
+  }
+});
+
+/* ─── SERVICE WORKER ─── */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
+}
+
+/* ─── INIT ─── */
+(function init() {
+  updateDisplay();
+  updateProgressBar();
+  updateConfigSummary();
+  buildIntervalDots();
+  renderPresets();
+  loadSounds();
+  // Notification status
+  if (Notification.permission === 'granted') {
+    document.getElementById('notif-status-text').textContent = 'Granted ✓';
+  }
+})();
+</script>
+</body>
+</html>
