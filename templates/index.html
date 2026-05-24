@@ -687,20 +687,22 @@ function synthBell(ctx, when = 0) {
 function playBell(when = 0, strikes = 1) {
   const ctx = getCtx();
   if (S.sound === 'synth') {
-    for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i*1.4);
+    for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i * 1.4);
     return;
   }
-  fetch(`/sounds/${encodeURIComponent(S.sound)}`).then(r=>r.arrayBuffer()).then(buf=>{
-    ctx.decodeAudioData(buf, dec=>{
-      for (let i=0; i<strikes; i++) {
-        const src=ctx.createBufferSource(); src.buffer=dec; src.connect(ctx.destination);
-        src.start(ctx.currentTime + when + i*1.4);
-      }
-    });
-  }).catch(()=>synthBell(ctx, ctx.currentTime+when));
+  // Use HTML Audio — supports 24-bit WAV, MP3, AIFF without decodeAudioData
+  const url = `/sounds/${encodeURIComponent(S.sound)}`;
+  for (let i = 0; i < strikes; i++) {
+    setTimeout(() => {
+      const a = new Audio(url);
+      a.play().catch(() => synthBell(getCtx(), getCtx().currentTime));
+    }, (when + i * 1.4) * 1000);
+  }
 }
 window.previewSound = function(fn) {
-  const old=S.sound; S.sound=fn; playBell(0,1); if(fn!=='synth') S.sound=old;
+  if (fn === 'synth') { const c=getCtx(); synthBell(c, c.currentTime); return; }
+  const a = new Audio(`/sounds/${encodeURIComponent(fn)}`);
+  a.play().catch(() => { const c=getCtx(); synthBell(c, c.currentTime); });
 };
 
 /* ─── NOTIFY / VIBRATE ─── */
