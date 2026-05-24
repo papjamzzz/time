@@ -14,260 +14,204 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
 
-/* ── TOKENS ── */
 :root {
   --gold:      #e8c96d;
   --gold-dim:  rgba(232,201,109,0.55);
-  --gold-glow: rgba(232,201,109,0.18);
+  --gold-glow: rgba(232,201,109,0.22);
   --mint:      #5eead4;
   --white:     rgba(255,252,245,0.96);
-  --dim:       rgba(255,248,235,0.50);
+  --dim:       rgba(255,248,235,0.52);
   --dimmer:    rgba(255,248,235,0.28);
-  --surface:   rgba(12, 7, 0, 0.68);
-  --surface2:  rgba(25, 15, 0, 0.72);
-  --border:    rgba(232,201,109,0.14);
-  --border-hi: rgba(232,201,109,0.32);
+  --surface:   rgba(10, 6, 0, 0.62);
+  --surface2:  rgba(20, 12, 0, 0.72);
+  --border:    rgba(232,201,109,0.16);
+  --border-hi: rgba(232,201,109,0.36);
   --danger:    rgba(255,90,90,0.9);
-  --radius:    20px;
   --radius-sm: 12px;
   --safe-top:  env(safe-area-inset-top, 0px);
   --safe-bot:  env(safe-area-inset-bottom, 0px);
 }
 
-/* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; -webkit-text-size-adjust: 100%; }
-
-/* ── BACKGROUND ── */
 body {
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--white);
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow: hidden;
   background: #1a0e00;
 }
 
+/* ── BACKGROUND ── */
 .bg-image {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
+  position: fixed; inset: 0; z-index: 0;
   background-image: url('/static/bell.jpg');
   background-size: cover;
   background-position: center 30%;
-  filter: brightness(0.55) saturate(0.9);
+  filter: brightness(0.6) saturate(0.85);
 }
 .bg-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
+  position: fixed; inset: 0; z-index: 1;
   background: linear-gradient(
     180deg,
-    rgba(8,4,0,0.55) 0%,
-    rgba(10,5,0,0.35) 30%,
-    rgba(10,5,0,0.40) 60%,
-    rgba(8,4,0,0.78) 100%
+    rgba(6,3,0,0.40) 0%,
+    rgba(8,4,0,0.20) 35%,
+    rgba(8,4,0,0.28) 60%,
+    rgba(6,3,0,0.70) 100%
   );
 }
 
 /* ── APP ── */
 .app {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
 }
 
-/* ── HEADER ── */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 22px 12px;
-  padding-top: calc(var(--safe-top) + 16px);
-}
-.header-title {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-.header-actions { display: flex; gap: 10px; }
-.icon-btn {
-  width: 38px; height: 38px;
-  border-radius: 11px;
-  background: rgba(12,7,0,0.55);
-  border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  color: var(--dim);
-  font-size: 16px;
-  transition: all 0.18s;
-  -webkit-tap-highlight-color: transparent;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.icon-btn:active, .icon-btn.active {
-  background: rgba(232,201,109,0.15);
-  border-color: var(--gold-dim);
-  color: var(--gold);
-}
-.icon-btn svg { width: 18px; height: 18px; }
-
-/* ── MAIN ── */
+/* ── MAIN — full height, centered ── */
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 24px calc(var(--safe-bot) + 32px);
-  gap: 36px;
+  padding: calc(var(--safe-top) + 20px) 24px calc(var(--safe-bot) + 100px);
+  gap: 20px;
 }
 
-/* ── TIMER FACE ── */
+/* ── TIMER FACE — no ring, just text ── */
 .timer-face {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-}
-
-/* Ring */
-.ring-wrap {
-  position: relative;
-  width: 224px;
-  height: 224px;
-  margin-bottom: 4px;
-}
-.ring-svg { width: 224px; height: 224px; transform: rotate(-90deg); }
-.ring-track {
-  fill: none;
-  stroke: rgba(232,201,109,0.12);
-  stroke-width: 5;
-}
-.ring-progress {
-  fill: none;
-  stroke: var(--gold-dim);
-  stroke-width: 5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 1s linear, stroke 0.5s;
-  stroke-dasharray: 636.17;
-  stroke-dashoffset: 0;
-}
-.ring-progress.running { stroke: var(--mint); }
-
-.ring-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .timer-display {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 52px;
+  font-size: 96px;
   font-weight: 300;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   color: var(--white);
   line-height: 1;
-  text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+  text-shadow:
+    0 2px 40px rgba(0,0,0,0.55),
+    0 0  80px rgba(0,0,0,0.25);
 }
 .timer-display.running {
   color: var(--mint);
-  text-shadow: 0 0 32px rgba(94,234,212,0.35), 0 2px 16px rgba(0,0,0,0.5);
+  text-shadow:
+    0 0 48px rgba(94,234,212,0.40),
+    0 2px 24px rgba(0,0,0,0.55);
 }
 
 .timer-status {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--dim);
 }
 .timer-status.running { color: var(--mint); }
 
-/* Interval dots */
 .interval-dots {
-  display: flex;
-  gap: 7px;
-  justify-content: center;
-  min-height: 10px;
-  margin-top: 2px;
+  display: flex; gap: 7px; justify-content: center; min-height: 10px;
 }
 .interval-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: rgba(232,201,109,0.2);
-  border: 1px solid var(--border-hi);
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(232,201,109,0.22); border: 1px solid var(--border-hi);
   transition: all 0.3s;
 }
-.interval-dot.done { background: var(--mint); border-color: var(--mint); }
+.interval-dot.done   { background: var(--mint); border-color: var(--mint); }
 .interval-dot.active { background: var(--gold); border-color: var(--gold); }
 
-/* Config summary */
 .config-summary {
-  font-size: 13px;
-  color: var(--dim);
-  letter-spacing: 0.02em;
-  margin-top: 8px;
+  font-size: 13px; color: var(--dim); letter-spacing: 0.03em;
 }
 
 /* ── CONTROLS ── */
 .controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
+  display: flex; align-items: center; justify-content: center; gap: 22px;
 }
 
 .btn {
-  border: none;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  border: none; cursor: pointer; font-family: 'Inter', sans-serif;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.18s;
   display: flex; align-items: center; justify-content: center;
+  transition: transform 0.18s, opacity 0.18s;
 }
-.btn:active { transform: scale(0.92); }
+.btn:active { transform: scale(0.90) !important; }
+
+/* Breathing play button */
+@keyframes breathe {
+  0%   { transform: scale(1);    box-shadow: 0 0 0  0px rgba(232,201,109,0.55), 0 4px 28px rgba(232,201,109,0.30); }
+  45%  { transform: scale(1.11); box-shadow: 0 0 0 16px rgba(232,201,109,0.00), 0 4px 44px rgba(232,201,109,0.50); }
+  55%  { transform: scale(1.11); box-shadow: 0 0 0  0px rgba(232,201,109,0.00), 0 4px 44px rgba(232,201,109,0.50); }
+  100% { transform: scale(1);    box-shadow: 0 0 0  0px rgba(232,201,109,0.55), 0 4px 28px rgba(232,201,109,0.30); }
+}
+@keyframes breathe-mint {
+  /* stopped — used as a fallback, but running removes animation entirely */
+  0%, 100% { box-shadow: 0 4px 32px rgba(94,234,212,0.35); }
+}
 
 .btn-play {
-  width: 76px; height: 76px;
-  border-radius: 50%;
-  background: var(--gold);
-  color: #1a0e00;
-  box-shadow: 0 4px 32px rgba(232,201,109,0.35), 0 1px 4px rgba(0,0,0,0.4);
+  width: 78px; height: 78px; border-radius: 50%;
+  background: var(--gold); color: #1a0e00;
+  animation: breathe 8s ease-in-out infinite;
 }
 .btn-play.running {
-  background: var(--mint);
-  box-shadow: 0 4px 32px rgba(94,234,212,0.3), 0 1px 4px rgba(0,0,0,0.4);
+  background: var(--mint); color: #0a1a15;
+  animation: none;
+  box-shadow: 0 4px 32px rgba(94,234,212,0.35);
 }
 
 .btn-secondary {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  background: rgba(12,7,0,0.55);
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(10,6,0,0.52);
   border: 1px solid var(--border-hi);
   color: var(--dim);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
-.btn-secondary:active { color: var(--white); border-color: var(--gold-dim); }
+.btn-secondary:active { color: var(--white); }
+
+/* ── BOTTOM-LEFT UTILITY ICONS ── */
+.util-icons {
+  position: fixed;
+  bottom: calc(var(--safe-bot) + 28px);
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+.util-btn {
+  width: 44px; height: 44px;
+  border-radius: 13px;
+  background: rgba(232,201,109,0.15);
+  border: 1.5px solid rgba(232,201,109,0.45);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: rgba(255,248,235,0.80);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.util-btn:active {
+  background: rgba(232,201,109,0.28);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.util-btn svg { width: 19px; height: 19px; }
 
 /* ── SHEETS ── */
 .sheet-overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.55);
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
+  z-index: 100; opacity: 0; pointer-events: none;
   transition: opacity 0.25s;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -275,448 +219,213 @@ body {
 .sheet-overlay.open { opacity: 1; pointer-events: all; }
 
 .sheet {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  max-width: 480px;
-  margin: 0 auto;
-  background: rgba(14, 8, 0, 0.94);
+  position: fixed; bottom: 0; left: 0; right: 0;
+  max-width: 480px; margin: 0 auto;
+  background: rgba(14, 8, 0, 0.95);
   border-radius: 24px 24px 0 0;
   border-top: 1px solid var(--border-hi);
   padding: 0 22px calc(var(--safe-bot) + 24px);
   z-index: 101;
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-  max-height: 90dvh;
-  overflow-y: auto;
-  scrollbar-width: none;
+  max-height: 90dvh; overflow-y: auto; scrollbar-width: none;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
 .sheet::-webkit-scrollbar { display: none; }
 .sheet.open { transform: translateY(0); }
-
 .sheet-handle {
-  width: 36px; height: 4px;
-  border-radius: 2px;
-  background: var(--border-hi);
-  margin: 14px auto 22px;
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--border-hi); margin: 14px auto 22px;
 }
-.sheet-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--white);
-  margin-bottom: 22px;
-}
+.sheet-title { font-size: 17px; font-weight: 600; color: var(--white); margin-bottom: 22px; }
 
 /* ── FORM ── */
-.form-row { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
-.form-label { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
-
+.form-row   { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+.form-label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
 .form-input {
-  background: rgba(255,248,235,0.06);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--white);
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  padding: 13px 14px;
-  width: 100%;
-  outline: none;
-  -webkit-appearance: none;
+  background: rgba(255,248,235,0.06); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--white);
+  font-family: 'Inter', sans-serif; font-size: 15px;
+  padding: 13px 14px; width: 100%; outline: none; -webkit-appearance: none;
   transition: border-color 0.15s;
 }
 .form-input:focus { border-color: var(--gold-dim); }
 .form-input::placeholder { color: var(--dimmer); }
 
 .toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
 }
 .toggle-row:last-child { border-bottom: none; }
 .toggle-label { font-size: 15px; color: var(--white); }
-.toggle-sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
+.toggle-sub   { font-size: 12px; color: var(--dim); margin-top: 2px; }
 
 .toggle {
-  width: 51px; height: 31px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 100px;
-  position: relative;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  transition: background 0.2s;
-  flex-shrink: 0;
+  width: 51px; height: 31px; background: rgba(255,255,255,0.10);
+  border-radius: 100px; position: relative; cursor: pointer;
+  border: 1px solid var(--border); transition: background 0.2s; flex-shrink: 0;
 }
 .toggle.on { background: var(--gold); border-color: var(--gold); }
 .toggle::after {
-  content: '';
-  position: absolute;
-  width: 25px; height: 25px;
-  border-radius: 50%;
-  background: #fff;
+  content: ''; position: absolute;
+  width: 25px; height: 25px; border-radius: 50%; background: #fff;
   top: 2px; left: 2px;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
   box-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 .toggle.on::after { transform: translateX(20px); }
-
 .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
 /* Duration grid */
 .duration-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 10px;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 10px;
 }
 .dur-chip {
-  padding: 12px 8px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,248,235,0.05);
-  border: 1px solid var(--border);
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--dim);
-  cursor: pointer;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  padding: 12px 8px; border-radius: var(--radius-sm);
+  background: rgba(255,248,235,0.05); border: 1px solid var(--border);
+  text-align: center; font-size: 14px; font-weight: 500; color: var(--dim);
+  cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
-.dur-chip.active {
-  border-color: var(--gold-dim);
-  color: var(--gold);
-  background: rgba(232,201,109,0.1);
-}
+.dur-chip.active { border-color: var(--gold-dim); color: var(--gold); background: rgba(232,201,109,0.10); }
 
-.time-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.time-input-row { display: flex; align-items: center; gap: 8px; }
 .time-seg {
-  flex: 1;
-  text-align: center;
-  background: rgba(255,248,235,0.06);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--white);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 22px;
-  padding: 12px 4px;
-  outline: none;
-  -webkit-appearance: none;
-  width: 0;
+  flex: 1; text-align: center;
+  background: rgba(255,248,235,0.06); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--white);
+  font-family: 'JetBrains Mono', monospace; font-size: 22px;
+  padding: 12px 4px; outline: none; -webkit-appearance: none; width: 0;
 }
 .time-seg:focus { border-color: var(--gold-dim); }
 .time-colon { font-size: 20px; color: var(--dim); font-family: 'JetBrains Mono', monospace; }
 
-/* Alert mode */
 .mode-pills { display: flex; gap: 8px; }
 .mode-pill {
-  flex: 1;
-  padding: 11px 6px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,248,235,0.05);
-  border: 1px solid var(--border);
-  text-align: center;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--dim);
-  cursor: pointer;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  flex: 1; padding: 11px 6px; border-radius: var(--radius-sm);
+  background: rgba(255,248,235,0.05); border: 1px solid var(--border);
+  text-align: center; font-size: 13px; font-weight: 500; color: var(--dim);
+  cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
-.mode-pill.active {
-  border-color: var(--gold-dim);
-  color: var(--gold);
-  background: rgba(232,201,109,0.1);
-}
+.mode-pill.active { border-color: var(--gold-dim); color: var(--gold); background: rgba(232,201,109,0.10); }
 
-/* Sound list */
 .sound-list { display: flex; flex-direction: column; gap: 8px; }
 .sound-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 11px 13px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,248,235,0.05);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  display: flex; align-items: center; gap: 12px; padding: 11px 13px;
+  border-radius: var(--radius-sm); background: rgba(255,248,235,0.05); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
-.sound-row.active {
-  border-color: var(--gold-dim);
-  background: rgba(232,201,109,0.08);
-}
-.sound-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border-hi);
-  flex-shrink: 0;
-}
+.sound-row.active { border-color: var(--gold-dim); background: rgba(232,201,109,0.08); }
+.sound-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--border-hi); flex-shrink: 0; }
 .sound-row.active .sound-dot { background: var(--gold); border-color: var(--gold); }
 .sound-name { font-size: 14px; color: var(--white); flex: 1; }
 .sound-preview {
-  font-size: 12px;
-  color: var(--dim);
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--border);
-  cursor: pointer;
+  font-size: 12px; color: var(--dim); padding: 4px 10px;
+  border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); cursor: pointer;
 }
 .synth-badge {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--gold);
-  background: rgba(232,201,109,0.12);
-  border-radius: 5px;
-  padding: 2px 7px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  color: var(--gold); background: rgba(232,201,109,0.12); border-radius: 5px; padding: 2px 7px;
 }
-
-/* Upload */
 .upload-zone {
-  border: 1.5px dashed var(--border-hi);
-  border-radius: var(--radius-sm);
-  padding: 22px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s;
-  margin-top: 10px;
+  border: 1.5px dashed var(--border-hi); border-radius: var(--radius-sm);
+  padding: 22px; text-align: center; cursor: pointer; transition: all 0.15s; margin-top: 10px;
 }
-.upload-zone:hover, .upload-zone.drag {
-  border-color: var(--gold-dim);
-  background: rgba(232,201,109,0.04);
-}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--gold-dim); background: rgba(232,201,109,0.04); }
 .upload-zone input { display: none; }
 .upload-icon { font-size: 22px; margin-bottom: 6px; }
 .upload-text { font-size: 14px; color: var(--dim); }
-.upload-sub { font-size: 12px; color: var(--dimmer); margin-top: 3px; }
+.upload-sub  { font-size: 12px; color: var(--dimmer); margin-top: 3px; }
 
 /* Presets in sheet */
-.presets-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
-  flex-wrap: wrap;
-}
-.presets-scroll::-webkit-scrollbar { display: none; }
+.presets-wrap { display: flex; gap: 8px; flex-wrap: wrap; }
 .preset-chip {
-  padding: 9px 16px;
-  border-radius: 100px;
-  background: rgba(255,248,235,0.05);
-  border: 1px solid var(--border);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--dim);
-  cursor: pointer;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s;
-  position: relative;
+  padding: 9px 16px; border-radius: 100px;
+  background: rgba(255,248,235,0.05); border: 1px solid var(--border);
+  font-size: 14px; font-weight: 500; color: var(--dim); cursor: pointer;
+  white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: all 0.15s; position: relative;
 }
-.preset-chip.active, .preset-chip:active {
-  background: rgba(232,201,109,0.1);
-  border-color: var(--gold-dim);
-  color: var(--gold);
-}
+.preset-chip.active { background: rgba(232,201,109,0.10); border-color: var(--gold-dim); color: var(--gold); }
 .preset-chip .preset-del {
-  display: none;
-  position: absolute;
-  top: -5px; right: -5px;
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  background: var(--danger);
-  color: #fff;
-  font-size: 10px;
-  align-items: center; justify-content: center;
-  cursor: pointer;
+  display: none; position: absolute; top: -5px; right: -5px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--danger); color: #fff; font-size: 10px;
+  align-items: center; justify-content: center; cursor: pointer;
 }
 .preset-chip.deleting .preset-del { display: flex; }
 .preset-add {
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  background: rgba(255,248,235,0.05);
-  border: 1px solid var(--border);
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,248,235,0.05); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-  color: var(--dim);
-  cursor: pointer;
+  font-size: 20px; color: var(--dim); cursor: pointer; flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
-  flex-shrink: 0;
 }
 
-/* Log list */
+/* Log */
 .log-list { display: flex; flex-direction: column; gap: 8px; }
 .log-item {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 13px 14px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,248,235,0.05);
-  border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 13px; padding: 13px 14px;
+  border-radius: var(--radius-sm); background: rgba(255,248,235,0.05); border: 1px solid var(--border);
 }
-.log-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--mint);
-  flex-shrink: 0;
-}
+.log-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); flex-shrink: 0; }
 .log-dot.partial { background: var(--gold); }
 .log-info { flex: 1; }
 .log-duration { font-size: 15px; font-weight: 500; color: var(--white); }
 .log-date { font-size: 12px; color: var(--dim); margin-top: 2px; }
-.log-badge {
-  font-size: 11px;
-  color: var(--dim);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 3px 8px;
-}
-.log-empty {
-  text-align: center;
-  color: var(--dim);
-  font-size: 14px;
-  padding: 36px 0;
-  line-height: 1.7;
-}
-.log-actions {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
+.log-badge { font-size: 11px; color: var(--dim); background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
+.log-empty { text-align: center; color: var(--dim); font-size: 14px; padding: 36px 0; line-height: 1.7; }
+.log-actions { display: flex; gap: 8px; margin-bottom: 16px; }
 .btn-ghost {
-  flex: 1;
-  padding: 13px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,248,235,0.05);
-  border: 1px solid var(--border);
-  color: var(--white);
-  font-size: 14px;
-  font-weight: 500;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s;
+  flex: 1; padding: 13px; border-radius: var(--radius-sm);
+  background: rgba(255,248,235,0.05); border: 1px solid var(--border);
+  color: var(--white); font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all 0.15s;
 }
-.btn-ghost:active { opacity: 0.7; }
 .btn-ghost.accent { color: var(--mint); border-color: rgba(94,234,212,0.35); background: rgba(94,234,212,0.07); }
 
-/* Primary button */
 .btn-primary {
-  width: 100%;
-  padding: 15px;
-  border-radius: var(--radius-sm);
-  background: var(--gold);
-  color: #1a0e00;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: 'Inter', sans-serif;
-  border: none;
-  cursor: pointer;
-  margin-top: 10px;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.15s;
+  width: 100%; padding: 15px; border-radius: var(--radius-sm);
+  background: var(--gold); color: #1a0e00;
+  font-size: 16px; font-weight: 700; font-family: 'Inter', sans-serif;
+  border: none; cursor: pointer; margin-top: 10px;
+  -webkit-tap-highlight-color: transparent; transition: opacity 0.15s;
 }
 .btn-primary:active { opacity: 0.85; }
 
-/* Interval fields */
 .interval-row { display: flex; align-items: center; gap: 10px; }
 .interval-preview { font-size: 12px; color: var(--dim); margin-top: 8px; }
 
-/* Shortcuts */
-.shortcut-row { display: flex; gap: 10px; }
-.shortcut-row .form-input { flex: 1; }
-
-/* Settings */
-.settings-section-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dimmer);
-  margin-bottom: 4px;
-  margin-top: 18px;
-}
-
-/* Utils */
 .hidden { display: none !important; }
-.mt-8 { margin-top: 8px; }
+.mt-8  { margin-top: 8px; }
 .mt-12 { margin-top: 12px; }
-.mt-16 { margin-top: 16px; }
 
 /* Completion pulse */
 @keyframes completePulse {
-  0%   { box-shadow: 0 0 0 0   rgba(94,234,212,0.6); }
-  70%  { box-shadow: 0 0 0 28px rgba(94,234,212,0); }
-  100% { box-shadow: 0 0 0 0   rgba(94,234,212,0); }
+  0%   { text-shadow: 0 0 0   rgba(94,234,212,0.8), 0 2px 24px rgba(0,0,0,0.5); }
+  50%  { text-shadow: 0 0 60px rgba(94,234,212,0.6), 0 2px 24px rgba(0,0,0,0.5); }
+  100% { text-shadow: 0 0 0   rgba(94,234,212,0),   0 2px 24px rgba(0,0,0,0.5); }
 }
-.ring-wrap.completed { animation: completePulse 1s ease-out; }
+.timer-display.completed { animation: completePulse 1.2s ease-out; }
 
-/* Mobile safe */
 @media (max-height: 620px) {
-  .ring-wrap { width: 180px; height: 180px; }
-  .ring-svg  { width: 180px; height: 180px; }
-  .timer-display { font-size: 40px; }
-  .main { gap: 24px; }
+  .timer-display { font-size: 72px; }
+  .main { gap: 14px; }
 }
 </style>
 </head>
 <body>
 
-<!-- BACKGROUND -->
 <div class="bg-image"></div>
 <div class="bg-overlay"></div>
 
 <div class="app">
-
-  <!-- HEADER -->
-  <header class="header">
-    <span class="header-title">Time</span>
-    <div class="header-actions">
-      <div class="icon-btn" id="log-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-          <rect x="9" y="3" width="6" height="4" rx="1"/>
-          <line x1="9" y1="12" x2="15" y2="12"/>
-          <line x1="9" y1="16" x2="12" y2="16"/>
-        </svg>
-      </div>
-      <div class="icon-btn" id="settings-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN — timer only, nothing else -->
   <main class="main">
 
     <div class="timer-face">
-      <div class="ring-wrap" id="ring-wrap">
-        <svg class="ring-svg" viewBox="0 0 224 224">
-          <circle class="ring-track"    cx="112" cy="112" r="101"/>
-          <circle class="ring-progress" id="ring-progress" cx="112" cy="112" r="101"/>
-        </svg>
-        <div class="ring-center">
-          <div class="timer-display" id="timer-display">1:00:00</div>
-          <div class="timer-status"  id="timer-status">ready</div>
-        </div>
-      </div>
-
+      <div class="timer-display" id="timer-display">60</div>
+      <div class="timer-status"  id="timer-status">ready</div>
       <div class="interval-dots" id="interval-dots"></div>
-      <div class="config-summary"  id="config-summary">1 hour · no intervals</div>
+      <div class="config-summary" id="config-summary">1 hour · no intervals</div>
     </div>
 
     <div class="controls">
@@ -741,7 +450,25 @@ body {
   </main>
 </div>
 
-<!-- ═══ SHEETS ═══ -->
+<!-- Bottom-left utility icons -->
+<div class="util-icons">
+  <div class="util-btn" id="log-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+      <rect x="9" y="3" width="6" height="4" rx="1"/>
+      <line x1="9" y1="12" x2="15" y2="12"/>
+      <line x1="9" y1="16" x2="12" y2="16"/>
+    </svg>
+  </div>
+  <div class="util-btn" id="settings-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </div>
+</div>
+
+<!-- SHEETS -->
 <div class="sheet-overlay" id="overlay"></div>
 
 <!-- CONFIG SHEET -->
@@ -749,7 +476,6 @@ body {
   <div class="sheet-handle"></div>
   <div class="sheet-title">Configure</div>
 
-  <!-- Duration -->
   <div class="form-row">
     <div class="form-label">Duration</div>
     <div class="duration-grid">
@@ -767,17 +493,14 @@ body {
       <input class="time-seg" id="custom-h" type="number" min="0" max="23" placeholder="h">
       <span class="time-colon">:</span>
       <input class="time-seg" id="custom-m" type="number" min="0" max="59" placeholder="mm">
-      <span class="time-colon">:</span>
-      <input class="time-seg" id="custom-s" type="number" min="0" max="59" placeholder="ss">
     </div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- Presets -->
   <div class="form-row">
     <div class="form-label">Saved Presets</div>
-    <div class="presets-scroll" id="presets-scroll">
+    <div class="presets-wrap" id="presets-scroll">
       <div class="preset-chip" data-min="5">5 min</div>
       <div class="preset-chip" data-min="10">10 min</div>
       <div class="preset-chip" data-min="20">20 min</div>
@@ -790,10 +513,9 @@ body {
 
   <div class="divider"></div>
 
-  <!-- Intervals -->
   <div class="form-row">
     <div class="form-label">Intervals</div>
-    <div class="toggle-row" style="padding-top:0; border-bottom:none; margin-bottom:8px;">
+    <div class="toggle-row" style="padding-top:0;border-bottom:none;margin-bottom:8px;">
       <div>
         <div class="toggle-label">Enable intervals</div>
         <div class="toggle-sub">Bell at equal intervals</div>
@@ -803,15 +525,14 @@ body {
     <div id="interval-fields" class="hidden">
       <div class="interval-row">
         <input class="form-input" id="interval-count" type="number" min="2" max="20" value="2" style="text-align:center;">
-        <span style="color:var(--dim); font-size:13px; flex-shrink:0;">equal parts</span>
+        <span style="color:var(--dim);font-size:13px;flex-shrink:0;">equal parts</span>
       </div>
-      <div class="interval-preview" id="interval-preview">2 intervals of 30 min each</div>
+      <div class="interval-preview" id="interval-preview">2 intervals · 30 min each</div>
     </div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- Alert mode -->
   <div class="form-row">
     <div class="form-label">Alert Mode</div>
     <div class="mode-pills">
@@ -823,7 +544,6 @@ body {
 
   <div class="divider"></div>
 
-  <!-- Sounds -->
   <div class="form-row">
     <div class="form-label">Bells</div>
     <div class="toggle-row" style="padding-top:0;border:none;margin-bottom:4px;">
@@ -857,12 +577,11 @@ body {
 
   <div class="divider"></div>
 
-  <!-- Shortcuts -->
   <div class="form-row">
     <div class="form-label">iOS Shortcuts</div>
     <div class="toggle-row" style="padding-top:0;border:none;margin-bottom:8px;">
       <div>
-        <div class="toggle-label">Trigger on start</div>
+        <div class="toggle-label">On start</div>
         <div class="toggle-sub">e.g. Do Not Disturb on</div>
       </div>
       <div class="toggle" id="shortcut-start-toggle"></div>
@@ -872,7 +591,7 @@ body {
     </div>
     <div class="toggle-row" style="padding-top:12px;border:none;margin-bottom:8px;">
       <div>
-        <div class="toggle-label">Trigger on end</div>
+        <div class="toggle-label">On end</div>
         <div class="toggle-sub">e.g. Do Not Disturb off</div>
       </div>
       <div class="toggle" id="shortcut-end-toggle"></div>
@@ -919,10 +638,12 @@ body {
       <div class="toggle-label">Strike count</div>
       <div class="toggle-sub">Times the bell rings</div>
     </div>
-    <input class="form-input" id="strike-count" type="number" min="1" max="9" value="1" style="width:64px;text-align:center;flex-shrink:0;padding:8px;">
+    <input class="form-input" id="strike-count" type="number" min="1" max="9" value="1"
+      style="width:64px;text-align:center;flex-shrink:0;padding:8px;">
   </div>
   <div class="divider"></div>
-  <button class="btn-ghost" id="clear-log-btn" style="color:var(--danger);border-color:rgba(255,90,90,0.3);width:100%;">Clear Session Log</button>
+  <button class="btn-ghost" id="clear-log-btn"
+    style="color:var(--danger);border-color:rgba(255,90,90,0.3);width:100%;">Clear Session Log</button>
 </div>
 
 <script>
@@ -951,199 +672,183 @@ function getCtx() {
   return audioCtx;
 }
 function synthBell(ctx, when = 0) {
-  const freq = 432;
-  [
-    [freq, 0.6, 4],
-    [freq * 2.756, 0.18, 2.4],
-  ].forEach(([f, vol, dur]) => {
+  [[432, 0.6, 4], [432*2.756, 0.18, 2.4]].forEach(([f, vol, dur]) => {
     const osc = ctx.createOscillator(), g = ctx.createGain();
     osc.connect(g); g.connect(ctx.destination);
     osc.type = 'sine';
     osc.frequency.setValueAtTime(f, when);
-    osc.frequency.exponentialRampToValueAtTime(f * 0.5, when + dur);
+    osc.frequency.exponentialRampToValueAtTime(f*0.5, when+dur);
     g.gain.setValueAtTime(0, when);
-    g.gain.linearRampToValueAtTime(vol, when + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.001, when + dur);
-    osc.start(when); osc.stop(when + dur + 0.1);
+    g.gain.linearRampToValueAtTime(vol, when+0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, when+dur);
+    osc.start(when); osc.stop(when+dur+0.1);
   });
 }
 function playBell(when = 0, strikes = 1) {
   const ctx = getCtx();
   if (S.sound === 'synth') {
-    for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i * 1.4);
+    for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i*1.4);
     return;
   }
-  fetch(`/sounds/${S.sound}`).then(r => r.arrayBuffer()).then(buf => {
-    ctx.decodeAudioData(buf, dec => {
-      for (let i = 0; i < strikes; i++) {
-        const src = ctx.createBufferSource();
-        src.buffer = dec; src.connect(ctx.destination);
-        src.start(ctx.currentTime + when + i * 1.4);
+  fetch(`/sounds/${S.sound}`).then(r=>r.arrayBuffer()).then(buf=>{
+    ctx.decodeAudioData(buf, dec=>{
+      for (let i=0; i<strikes; i++) {
+        const src=ctx.createBufferSource(); src.buffer=dec; src.connect(ctx.destination);
+        src.start(ctx.currentTime + when + i*1.4);
       }
     });
-  }).catch(() => synthBell(ctx, ctx.currentTime + when));
+  }).catch(()=>synthBell(ctx, ctx.currentTime+when));
 }
 window.previewSound = function(fn) {
-  if (fn === 'synth') { const c = getCtx(); synthBell(c, c.currentTime); }
-  else { const old = S.sound; S.sound = fn; playBell(0, 1); S.sound = old; }
+  const old=S.sound; S.sound=fn; playBell(0,1); if(fn!=='synth') S.sound=old;
 };
 
 /* ─── NOTIFY / VIBRATE ─── */
 function notify(title, body) {
-  if (Notification.permission === 'granted')
-    new Notification(title, { body, icon: '/static/icons/icon-192.png' });
+  if (Notification.permission==='granted')
+    new Notification(title, {body, icon:'/static/icons/icon-192.png'});
 }
-function vib(p = [200,100,200]) { if (navigator.vibrate) navigator.vibrate(p); }
+function vib(p=[200,100,200]) { if(navigator.vibrate) navigator.vibrate(p); }
 
 /* ─── WAKE LOCK ─── */
 async function acquireWakeLock() {
   if (!S.wakeLock || !('wakeLock' in navigator)) return;
-  try { wakeLockRef = await navigator.wakeLock.request('screen'); } catch(e) {}
+  try { wakeLockRef = await navigator.wakeLock.request('screen'); } catch(e){}
 }
 function releaseWakeLock() {
-  if (wakeLockRef) { wakeLockRef.release().catch(()=>{}); wakeLockRef = null; }
+  if (wakeLockRef) { wakeLockRef.release().catch(()=>{}); wakeLockRef=null; }
 }
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && running && !paused) acquireWakeLock();
+document.addEventListener('visibilitychange', ()=>{
+  if (document.visibilityState==='visible' && running && !paused) acquireWakeLock();
 });
 
 /* ─── SHORTCUTS ─── */
 function triggerShortcut(name) {
   if (!name) return;
-  const a = document.createElement('a');
-  a.href = `shortcuts://run-shortcut?name=${encodeURIComponent(name)}`; a.click();
+  const a=document.createElement('a');
+  a.href=`shortcuts://run-shortcut?name=${encodeURIComponent(name)}`; a.click();
 }
 
 /* ─── TIMER ─── */
 function scheduleBells() {
   scheduledBells = [];
-  if (S.startBell && S.alertMode === 'audio') playBell(0, S.strikes);
-  if (S.startBell && S.alertMode === 'notify') { notify('Time', 'Session started'); vib([200]); }
-  if (S.intervalCount > 1 && S.intervalBell) {
-    const step = totalSec / S.intervalCount;
-    for (let i = 1; i < S.intervalCount; i++)
-      scheduledBells.push({ at: step * i, type: 'interval', i, fired: false });
+  if (S.startBell && S.alertMode==='audio') playBell(0, S.strikes);
+  if (S.startBell && S.alertMode==='notify') { notify('Time','Session started'); vib([200]); }
+  if (S.intervalCount>1 && S.intervalBell) {
+    const step=totalSec/S.intervalCount;
+    for (let i=1; i<S.intervalCount; i++)
+      scheduledBells.push({at:step*i, type:'interval', i, fired:false});
   }
-  scheduledBells.push({ at: totalSec, type: 'end', fired: false });
+  scheduledBells.push({at:totalSec, type:'end', fired:false});
 }
 function checkBells() {
-  const elapsed = totalSec - remainSec;
-  scheduledBells.forEach(b => {
-    if (b.fired || elapsed < b.at) return;
-    b.fired = true;
-    if (b.type === 'end') {
-      if (S.alertMode === 'audio' && S.endBell) playBell(0, S.strikes);
-      if (S.alertMode === 'notify') { notify('Time', 'Session complete'); vib([400,200,400]); }
+  const elapsed=totalSec-remainSec;
+  scheduledBells.forEach(b=>{
+    if (b.fired || elapsed<b.at) return;
+    b.fired=true;
+    if (b.type==='end') {
+      if (S.alertMode==='audio' && S.endBell) playBell(0, S.strikes);
+      if (S.alertMode==='notify') { notify('Time','Session complete'); vib([400,200,400]); }
       triggerShortcut(S.shortcutEnd);
       onComplete();
     } else {
-      if (S.alertMode === 'audio' && S.intervalBell) playBell(0, S.strikes);
-      if (S.alertMode === 'notify') { notify('Time', `Interval ${b.i} complete`); vib([200]); }
+      if (S.alertMode==='audio' && S.intervalBell) playBell(0, S.strikes);
+      if (S.alertMode==='notify') { notify('Time',`Interval ${b.i} complete`); vib([200]); }
       updateIntervalDots(b.i);
     }
   });
 }
-
 function startTimer() {
   if (paused) {
-    paused = false; running = true;
-    setPlayState(true); acquireWakeLock();
-    tickInterval = setInterval(tick, 1000); return;
+    paused=false; running=true; setPlayState(true); acquireWakeLock();
+    tickInterval=setInterval(tick, 1000); return;
   }
-  running = true; paused = false;
-  remainSec = totalSec = S.durationSec;
-  setPlayState(true); updateDisplay(); updateRing();
+  running=true; paused=false;
+  remainSec=totalSec=S.durationSec;
+  setPlayState(true); updateDisplay();
   buildIntervalDots(); triggerShortcut(S.shortcutStart);
   scheduleBells(); acquireWakeLock();
-  tickInterval = setInterval(tick, 1000);
+  tickInterval=setInterval(tick, 1000);
 }
 function pauseTimer() {
-  paused = true; running = false;
+  paused=true; running=false;
   clearInterval(tickInterval); setPlayState(false); releaseWakeLock();
-  document.getElementById('timer-status').textContent = 'paused';
+  document.getElementById('timer-status').textContent='paused';
 }
 function cancelTimer() {
-  const elapsed = totalSec - remainSec;
-  if (elapsed > 30) logSession(Math.round(elapsed / 60), false);
+  const elapsed=totalSec-remainSec;
+  if (elapsed>30) logSession(Math.round(elapsed/60), false);
   clearInterval(tickInterval);
-  running = false; paused = false; remainSec = S.durationSec; totalSec = S.durationSec;
-  scheduledBells = []; setPlayState(false); releaseWakeLock();
-  updateDisplay(); updateRing(); buildIntervalDots();
-  document.getElementById('timer-status').textContent = 'ready';
-  document.getElementById('ring-wrap').classList.remove('completed');
+  running=false; paused=false; remainSec=totalSec=S.durationSec;
+  scheduledBells=[]; setPlayState(false); releaseWakeLock();
+  updateDisplay(); buildIntervalDots();
+  document.getElementById('timer-status').textContent='ready';
+  document.getElementById('timer-display').classList.remove('completed');
 }
 function restartTimer() {
   clearInterval(tickInterval);
-  running = false; paused = false; remainSec = S.durationSec; totalSec = S.durationSec;
-  scheduledBells = []; setPlayState(false); releaseWakeLock();
-  updateDisplay(); updateRing(); buildIntervalDots();
-  document.getElementById('timer-status').textContent = 'ready';
-  document.getElementById('ring-wrap').classList.remove('completed');
+  running=false; paused=false; remainSec=totalSec=S.durationSec;
+  scheduledBells=[]; setPlayState(false); releaseWakeLock();
+  updateDisplay(); buildIntervalDots();
+  document.getElementById('timer-status').textContent='ready';
+  document.getElementById('timer-display').classList.remove('completed');
 }
 function tick() {
-  if (remainSec <= 0) return;
-  remainSec--; updateDisplay(); updateRing(); checkBells();
+  if (remainSec<=0) return;
+  remainSec--; updateDisplay(); checkBells();
 }
 function onComplete() {
   clearInterval(tickInterval);
-  running = false; paused = false; releaseWakeLock(); setPlayState(false);
-  document.getElementById('timer-display').textContent = formatTime(0);
-  document.getElementById('timer-status').textContent = 'complete';
-  document.getElementById('ring-wrap').classList.add('completed');
-  logSession(Math.round(S.durationSec / 60), true);
-  setTimeout(() => document.getElementById('ring-wrap').classList.remove('completed'), 1200);
+  running=false; paused=false; releaseWakeLock(); setPlayState(false);
+  updateDisplay();
+  document.getElementById('timer-status').textContent='complete';
+  const td=document.getElementById('timer-display');
+  td.classList.remove('running'); td.classList.add('completed');
+  logSession(Math.round(S.durationSec/60), true);
+  setTimeout(()=>td.classList.remove('completed'), 1400);
 }
 function setPlayState(on) {
   document.getElementById('play-icon').style.display  = on ? 'none' : '';
   document.getElementById('pause-icon').style.display = on ? '' : 'none';
   document.getElementById('btn-play').classList.toggle('running', on);
-  document.getElementById('ring-progress').classList.toggle('running', on);
   document.getElementById('timer-display').classList.toggle('running', on);
   document.getElementById('timer-status').classList.toggle('running', on);
 }
 
-/* ─── DISPLAY ─── */
+/* ─── DISPLAY — no seconds ─── */
 function formatTime(s) {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
-  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  const h   = Math.floor(s / 3600);
+  const m   = Math.floor((s % 3600) / 60);
+  if (h > 0) return h + ':' + String(m).padStart(2,'0');
+  return String(m);
 }
 function updateDisplay() {
   document.getElementById('timer-display').textContent = formatTime(remainSec);
   if (running) document.getElementById('timer-status').textContent = 'running';
 }
-function updateRing() {
-  const circ = 634.60;
-  const offset = totalSec > 0 ? circ * (remainSec / totalSec) : 0;
-  document.getElementById('ring-progress').style.strokeDasharray = circ;
-  document.getElementById('ring-progress').style.strokeDashoffset = offset;
-}
+
 function buildIntervalDots() {
-  const el = document.getElementById('interval-dots');
-  el.innerHTML = '';
-  if (S.intervalCount < 2) return;
-  for (let i = 0; i < S.intervalCount; i++) {
-    const d = document.createElement('div');
-    d.className = 'interval-dot'; d.dataset.idx = i;
+  const el=document.getElementById('interval-dots'); el.innerHTML='';
+  if (S.intervalCount<2) return;
+  for (let i=0; i<S.intervalCount; i++) {
+    const d=document.createElement('div'); d.className='interval-dot'; d.dataset.idx=i;
     el.appendChild(d);
   }
 }
 function updateIntervalDots(completedIdx) {
-  document.querySelectorAll('.interval-dot').forEach((d, i) => {
-    if (i < completedIdx) d.classList.add('done');
-    else if (i === completedIdx) d.classList.add('active');
+  document.querySelectorAll('.interval-dot').forEach((d,i)=>{
+    if (i<completedIdx) d.classList.add('done');
+    else if (i===completedIdx) d.classList.add('active');
   });
 }
 function updateConfigSummary() {
-  const mins = S.durationSec / 60;
-  const dur = mins >= 60
-    ? (mins % 60 === 0 ? Math.floor(mins/60) + (Math.floor(mins/60)===1?' hour':' hours')
-      : (mins/60).toFixed(1) + ' hrs')
-    : mins + ' min';
-  const intv = S.intervalCount > 1 ? ` · ${S.intervalCount} intervals` : ' · no intervals';
-  document.getElementById('config-summary').textContent = dur + intv;
+  const mins=S.durationSec/60;
+  const dur=mins>=60
+    ? (mins%60===0 ? Math.floor(mins/60)+(Math.floor(mins/60)===1?' hour':' hours')
+      : (mins/60).toFixed(1)+' hrs')
+    : mins+' min';
+  const intv=S.intervalCount>1 ? ` · ${S.intervalCount} intervals` : ' · no intervals';
+  document.getElementById('config-summary').textContent=dur+intv;
 }
 
 /* ─── SHEETS ─── */
@@ -1153,261 +858,251 @@ function openSheet(id) {
 }
 function closeAllSheets() {
   document.getElementById('overlay').classList.remove('open');
-  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
 }
 document.getElementById('overlay').addEventListener('click', closeAllSheets);
-document.getElementById('settings-btn').addEventListener('click', () => openSheet('settings-sheet'));
-document.getElementById('log-btn').addEventListener('click', () => { renderLog(); openSheet('log-sheet'); });
-document.getElementById('btn-config').addEventListener('click', () => openSheet('config-sheet'));
+document.getElementById('settings-btn').addEventListener('click', ()=>openSheet('settings-sheet'));
+document.getElementById('log-btn').addEventListener('click', ()=>{ renderLog(); openSheet('log-sheet'); });
+document.getElementById('btn-config').addEventListener('click', ()=>openSheet('config-sheet'));
 
 /* ─── CONTROLS ─── */
-document.getElementById('btn-play').addEventListener('click', () => {
+document.getElementById('btn-play').addEventListener('click', ()=>{
   running ? pauseTimer() : startTimer();
 });
 let cancelHold;
 document.getElementById('btn-cancel').addEventListener('click', cancelTimer);
-document.getElementById('btn-cancel').addEventListener('pointerdown', () => {
-  cancelHold = setTimeout(restartTimer, 700);
-});
-['pointerup','pointerleave'].forEach(e =>
-  document.getElementById('btn-cancel').addEventListener(e, () => clearTimeout(cancelHold))
+document.getElementById('btn-cancel').addEventListener('pointerdown', ()=>{ cancelHold=setTimeout(restartTimer, 700); });
+['pointerup','pointerleave'].forEach(e=>
+  document.getElementById('btn-cancel').addEventListener(e, ()=>clearTimeout(cancelHold))
 );
 
 /* ─── DURATION ─── */
 function setDuration(secs) {
-  S.durationSec = secs;
-  if (!running && !paused) { remainSec = totalSec = secs; updateDisplay(); updateRing(); }
+  S.durationSec=secs;
+  if (!running && !paused) { remainSec=totalSec=secs; updateDisplay(); }
   updateIntervalPreview(); updateConfigSummary(); syncDurChips(); syncPresetHighlight();
 }
 function syncDurChips() {
-  document.querySelectorAll('.dur-chip').forEach(c =>
-    c.classList.toggle('active', parseInt(c.dataset.min)*60 === S.durationSec));
+  document.querySelectorAll('.dur-chip').forEach(c=>
+    c.classList.toggle('active', parseInt(c.dataset.min)*60===S.durationSec));
 }
 function syncCustomInputs() {
-  document.getElementById('custom-h').value = Math.floor(S.durationSec/3600) || '';
-  document.getElementById('custom-m').value = Math.floor((S.durationSec%3600)/60) || '';
-  document.getElementById('custom-s').value = S.durationSec % 60 || '';
+  document.getElementById('custom-h').value=Math.floor(S.durationSec/3600)||'';
+  document.getElementById('custom-m').value=Math.floor((S.durationSec%3600)/60)||'';
 }
-document.querySelectorAll('.dur-chip').forEach(c =>
-  c.addEventListener('click', () => { setDuration(parseInt(c.dataset.min)*60); syncCustomInputs(); })
+document.querySelectorAll('.dur-chip').forEach(c=>
+  c.addEventListener('click', ()=>{ setDuration(parseInt(c.dataset.min)*60); syncCustomInputs(); })
 );
-['custom-h','custom-m','custom-s'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => {
-    const h = parseInt(document.getElementById('custom-h').value)||0;
-    const m = parseInt(document.getElementById('custom-m').value)||0;
-    const s = parseInt(document.getElementById('custom-s').value)||0;
-    const t = h*3600 + m*60 + s;
-    if (t > 0) setDuration(t);
+['custom-h','custom-m'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    const h=parseInt(document.getElementById('custom-h').value)||0;
+    const m=parseInt(document.getElementById('custom-m').value)||0;
+    const t=h*3600+m*60;
+    if (t>0) setDuration(t);
   });
 });
 
 /* ─── INTERVALS ─── */
-const intervalToggle = document.getElementById('interval-toggle');
-intervalToggle.addEventListener('click', () => {
+const intervalToggle=document.getElementById('interval-toggle');
+intervalToggle.addEventListener('click', ()=>{
   intervalToggle.classList.toggle('on');
-  const on = intervalToggle.classList.contains('on');
+  const on=intervalToggle.classList.contains('on');
   document.getElementById('interval-fields').classList.toggle('hidden', !on);
-  S.intervalCount = on ? (parseInt(document.getElementById('interval-count').value)||2) : 0;
+  S.intervalCount=on ? (parseInt(document.getElementById('interval-count').value)||2) : 0;
   buildIntervalDots(); updateIntervalPreview(); updateConfigSummary();
 });
 document.getElementById('interval-count').addEventListener('input', updateIntervalPreview);
 function updateIntervalPreview() {
-  const on = intervalToggle.classList.contains('on');
-  if (!on) { S.intervalCount = 0; return; }
-  const n = Math.max(2, parseInt(document.getElementById('interval-count').value)||2);
-  S.intervalCount = n;
-  const eachSec = Math.floor(S.durationSec / n);
-  const label = eachSec >= 60 ? Math.floor(eachSec/60) + ' min' : eachSec + ' sec';
-  document.getElementById('interval-preview').textContent = `${n} intervals · ${label} each`;
+  const on=intervalToggle.classList.contains('on');
+  if (!on) { S.intervalCount=0; return; }
+  const n=Math.max(2, parseInt(document.getElementById('interval-count').value)||2);
+  S.intervalCount=n;
+  const eachSec=Math.floor(S.durationSec/n);
+  const label=eachSec>=60 ? Math.floor(eachSec/60)+' min' : eachSec+' sec';
+  document.getElementById('interval-preview').textContent=`${n} intervals · ${label} each`;
   buildIntervalDots(); updateConfigSummary();
 }
 
 /* ─── ALERT MODE ─── */
-document.querySelectorAll('.mode-pill').forEach(p =>
-  p.addEventListener('click', () => {
-    document.querySelectorAll('.mode-pill').forEach(x => x.classList.remove('active'));
-    p.classList.add('active'); S.alertMode = p.dataset.mode;
+document.querySelectorAll('.mode-pill').forEach(p=>
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active'); S.alertMode=p.dataset.mode;
   })
 );
 
 /* ─── TOGGLES ─── */
 function wireToggle(id, key) {
-  const el = document.getElementById(id);
-  el.addEventListener('click', () => { el.classList.toggle('on'); S[key] = el.classList.contains('on'); });
+  const el=document.getElementById(id);
+  el.addEventListener('click', ()=>{ el.classList.toggle('on'); S[key]=el.classList.contains('on'); });
 }
-wireToggle('start-bell-toggle', 'startBell');
-wireToggle('end-bell-toggle', 'endBell');
-wireToggle('interval-bell-toggle', 'intervalBell');
-wireToggle('wakelock-toggle', 'wakeLock');
-
+wireToggle('start-bell-toggle','startBell');
+wireToggle('end-bell-toggle','endBell');
+wireToggle('interval-bell-toggle','intervalBell');
+wireToggle('wakelock-toggle','wakeLock');
 function wireToggleField(tid, fid) {
-  document.getElementById(tid).addEventListener('click', () => {
-    const t = document.getElementById(tid);
-    t.classList.toggle('on');
+  document.getElementById(tid).addEventListener('click', ()=>{
+    const t=document.getElementById(tid); t.classList.toggle('on');
     document.getElementById(fid).classList.toggle('hidden', !t.classList.contains('on'));
   });
 }
-wireToggleField('shortcut-start-toggle', 'shortcut-start-fields');
-wireToggleField('shortcut-end-toggle', 'shortcut-end-fields');
-document.getElementById('shortcut-start-name').addEventListener('input', e => S.shortcutStart = e.target.value);
-document.getElementById('shortcut-end-name').addEventListener('input', e => S.shortcutEnd = e.target.value);
-
-document.getElementById('config-save').addEventListener('click', () => {
-  S.strikes = parseInt(document.getElementById('strike-count').value)||1;
-  closeAllSheets();
+wireToggleField('shortcut-start-toggle','shortcut-start-fields');
+wireToggleField('shortcut-end-toggle','shortcut-end-fields');
+document.getElementById('shortcut-start-name').addEventListener('input', e=>S.shortcutStart=e.target.value);
+document.getElementById('shortcut-end-name').addEventListener('input', e=>S.shortcutEnd=e.target.value);
+document.getElementById('config-save').addEventListener('click', ()=>{
+  S.strikes=parseInt(document.getElementById('strike-count').value)||1; closeAllSheets();
 });
 
 /* ─── SOUNDS ─── */
 async function loadSounds() {
   try {
-    const list = await (await fetch('/api/sounds')).json();
-    const sl = document.getElementById('sound-list');
-    sl.innerHTML = `<div class="sound-row ${S.sound==='synth'?'active':''}" data-sound="synth">
+    const list=await (await fetch('/api/sounds')).json();
+    const sl=document.getElementById('sound-list');
+    sl.innerHTML=`<div class="sound-row ${S.sound==='synth'?'active':''}" data-sound="synth">
       <div class="sound-dot"></div><div class="sound-name">Synthesized Bell</div>
       <span class="synth-badge">BUILT-IN</span>
       <button class="sound-preview" onclick="previewSound('synth')">▶</button></div>`;
-    list.forEach(s => {
-      const row = document.createElement('div');
-      row.className = 'sound-row' + (S.sound===s.filename?' active':'');
-      row.dataset.sound = s.filename;
-      row.innerHTML = `<div class="sound-dot"></div><div class="sound-name">${s.name}</div>
+    list.forEach(s=>{
+      const row=document.createElement('div');
+      row.className='sound-row'+(S.sound===s.filename?' active':'');
+      row.dataset.sound=s.filename;
+      row.innerHTML=`<div class="sound-dot"></div><div class="sound-name">${s.name}</div>
         <button class="sound-preview" onclick="previewSound('${s.filename}')">▶</button>
         <button class="sound-preview" style="color:var(--danger)" onclick="deleteSound('${s.filename}')">✕</button>`;
       sl.appendChild(row);
     });
-    sl.querySelectorAll('.sound-row').forEach(r =>
-      r.addEventListener('click', e => {
-        if (e.target.tagName==='BUTTON') return;
-        sl.querySelectorAll('.sound-row').forEach(x => x.classList.remove('active'));
-        r.classList.add('active'); S.sound = r.dataset.sound;
+    sl.querySelectorAll('.sound-row').forEach(r=>
+      r.addEventListener('click', e=>{
+        if(e.target.tagName==='BUTTON') return;
+        sl.querySelectorAll('.sound-row').forEach(x=>x.classList.remove('active'));
+        r.classList.add('active'); S.sound=r.dataset.sound;
       })
     );
     if (list.length && S.sound==='synth') {
-      S.sound = list[0].filename;
+      S.sound=list[0].filename;
       sl.querySelector('[data-sound="synth"]')?.classList.remove('active');
       sl.querySelectorAll('.sound-row')[1]?.classList.add('active');
     }
-  } catch(e) {}
+  } catch(e){}
 }
-window.deleteSound = async function(fn) {
-  await fetch(`/api/sounds/${fn}`, { method: 'DELETE' });
-  if (S.sound === fn) S.sound = 'synth';
-  loadSounds();
+window.deleteSound=async function(fn) {
+  await fetch(`/api/sounds/${fn}`,{method:'DELETE'});
+  if(S.sound===fn) S.sound='synth'; loadSounds();
 };
-const uploadZone = document.getElementById('upload-zone');
-const soundUpload = document.getElementById('sound-upload');
-uploadZone.addEventListener('click', () => soundUpload.click());
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
-uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag'); uploadFiles(e.dataTransfer.files); });
-soundUpload.addEventListener('change', () => uploadFiles(soundUpload.files));
+const uploadZone=document.getElementById('upload-zone');
+const soundUpload=document.getElementById('sound-upload');
+uploadZone.addEventListener('click', ()=>soundUpload.click());
+uploadZone.addEventListener('dragover', e=>{e.preventDefault(); uploadZone.classList.add('drag');});
+uploadZone.addEventListener('dragleave', ()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e=>{e.preventDefault(); uploadZone.classList.remove('drag'); uploadFiles(e.dataTransfer.files);});
+soundUpload.addEventListener('change', ()=>uploadFiles(soundUpload.files));
 async function uploadFiles(files) {
-  for (const f of files) { const fd = new FormData(); fd.append('file', f); await fetch('/api/sounds/upload', { method:'POST', body:fd }); }
+  for (const f of files) { const fd=new FormData(); fd.append('file',f); await fetch('/api/sounds/upload',{method:'POST',body:fd}); }
   loadSounds();
 }
 
 /* ─── PRESETS ─── */
-function loadPresets() { try { return JSON.parse(localStorage.getItem('time_presets')||'[]'); } catch { return []; } }
+function loadPresets() { try{return JSON.parse(localStorage.getItem('time_presets')||'[]');}catch{return[];} }
 function savePresets(p) { localStorage.setItem('time_presets', JSON.stringify(p)); }
 function syncPresetHighlight() {
-  document.querySelectorAll('.preset-chip[data-min]').forEach(c =>
-    c.classList.toggle('active', parseInt(c.dataset.min)*60 === S.durationSec));
+  document.querySelectorAll('.preset-chip[data-min]').forEach(c=>
+    c.classList.toggle('active', parseInt(c.dataset.min)*60===S.durationSec));
 }
-document.querySelectorAll('.preset-chip[data-min]').forEach(c =>
-  c.addEventListener('click', () => setDuration(parseInt(c.dataset.min)*60))
+document.querySelectorAll('.preset-chip[data-min]').forEach(c=>
+  c.addEventListener('click', ()=>setDuration(parseInt(c.dataset.min)*60))
 );
 function renderUserPresets() {
-  const scroll = document.getElementById('presets-scroll');
-  const add = document.getElementById('preset-add');
-  scroll.querySelectorAll('.user-preset').forEach(x => x.remove());
-  loadPresets().forEach((p, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'preset-chip user-preset'; chip.textContent = p.label; chip.dataset.idx = i;
-    const del = document.createElement('span'); del.className = 'preset-del'; del.textContent = '×';
+  const scroll=document.getElementById('presets-scroll');
+  const add=document.getElementById('preset-add');
+  scroll.querySelectorAll('.user-preset').forEach(x=>x.remove());
+  loadPresets().forEach((p,i)=>{
+    const chip=document.createElement('div');
+    chip.className='preset-chip user-preset'; chip.textContent=p.label;
+    const del=document.createElement('span'); del.className='preset-del'; del.textContent='×';
     chip.appendChild(del);
-    del.addEventListener('click', e => {
-      e.stopPropagation();
-      const ps = loadPresets(); ps.splice(i,1); savePresets(ps); renderUserPresets();
+    del.addEventListener('click', e=>{
+      e.stopPropagation(); const ps=loadPresets(); ps.splice(i,1); savePresets(ps); renderUserPresets();
     });
-    chip.addEventListener('click', () => {
-      S.durationSec = p.durationSec; S.intervalCount = p.intervalCount||0;
-      S.alertMode = p.alertMode||'audio'; S.sound = p.sound||'synth';
-      if (!running && !paused) { remainSec = totalSec = S.durationSec; updateDisplay(); updateRing(); }
+    chip.addEventListener('click', ()=>{
+      S.durationSec=p.durationSec; S.intervalCount=p.intervalCount||0;
+      S.alertMode=p.alertMode||'audio'; S.sound=p.sound||'synth';
+      if(!running&&!paused){remainSec=totalSec=S.durationSec; updateDisplay();}
       buildIntervalDots(); updateConfigSummary(); syncPresetHighlight();
     });
-    chip.addEventListener('pointerdown', () => { chip._hold = setTimeout(() => chip.classList.add('deleting'), 600); });
-    chip.addEventListener('pointerup', () => clearTimeout(chip._hold));
+    chip.addEventListener('pointerdown', ()=>{chip._hold=setTimeout(()=>chip.classList.add('deleting'),600);});
+    chip.addEventListener('pointerup', ()=>clearTimeout(chip._hold));
     scroll.insertBefore(chip, add);
   });
 }
-document.getElementById('preset-add').addEventListener('click', () => {
-  const mins = S.durationSec / 60;
-  const label = mins >= 60 ? (mins%60===0 ? Math.floor(mins/60)+'h' : (mins/60).toFixed(1)+'h') : mins+'m';
-  const ps = loadPresets();
-  ps.push({ label, durationSec: S.durationSec, intervalCount: S.intervalCount, alertMode: S.alertMode, sound: S.sound });
+document.getElementById('preset-add').addEventListener('click', ()=>{
+  const mins=S.durationSec/60;
+  const label=mins>=60?(mins%60===0?Math.floor(mins/60)+'h':(mins/60).toFixed(1)+'h'):mins+'m';
+  const ps=loadPresets();
+  ps.push({label, durationSec:S.durationSec, intervalCount:S.intervalCount, alertMode:S.alertMode, sound:S.sound});
   savePresets(ps); renderUserPresets();
 });
 
 /* ─── LOG ─── */
 function logSession(minutes, complete) {
-  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
-  sessions.unshift({ ts: Date.now(), minutes, complete, intervalCount: S.intervalCount });
-  if (sessions.length > 200) sessions.length = 200;
+  const sessions=JSON.parse(localStorage.getItem('time_sessions')||'[]');
+  sessions.unshift({ts:Date.now(), minutes, complete, intervalCount:S.intervalCount});
+  if (sessions.length>200) sessions.length=200;
   localStorage.setItem('time_sessions', JSON.stringify(sessions));
 }
 function renderLog() {
-  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
-  const el = document.getElementById('log-list');
-  if (!sessions.length) { el.innerHTML = '<div class="log-empty">No sessions yet.<br>Complete your first sit.</div>'; return; }
-  el.innerHTML = '';
-  sessions.forEach(s => {
-    const d = new Date(s.ts);
-    const dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
-    const timeStr = d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-    const mins = s.minutes;
-    const dur = mins >= 60 ? (mins%60===0 ? Math.floor(mins/60)+(Math.floor(mins/60)===1?' hr':' hrs') : (mins/60).toFixed(1)+' hrs') : mins+' min';
-    const row = document.createElement('div'); row.className = 'log-item';
-    row.innerHTML = `<div class="log-dot ${s.complete?'':'partial'}"></div>
+  const sessions=JSON.parse(localStorage.getItem('time_sessions')||'[]');
+  const el=document.getElementById('log-list');
+  if (!sessions.length) {el.innerHTML='<div class="log-empty">No sessions yet.<br>Complete your first sit.</div>'; return;}
+  el.innerHTML='';
+  sessions.forEach(s=>{
+    const d=new Date(s.ts);
+    const dateStr=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const timeStr=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const m=s.minutes;
+    const dur=m>=60?(m%60===0?Math.floor(m/60)+(Math.floor(m/60)===1?' hr':' hrs'):(m/60).toFixed(1)+' hrs'):m+' min';
+    const row=document.createElement('div'); row.className='log-item';
+    row.innerHTML=`<div class="log-dot ${s.complete?'':'partial'}"></div>
       <div class="log-info"><div class="log-duration">${dur}</div><div class="log-date">${dateStr} · ${timeStr}</div></div>
       <span class="log-badge">${s.complete?'complete':'partial'}</span>`;
     el.appendChild(row);
   });
 }
-document.getElementById('health-export-btn').addEventListener('click', () => {
-  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
+document.getElementById('health-export-btn').addEventListener('click', ()=>{
+  const sessions=JSON.parse(localStorage.getItem('time_sessions')||'[]');
   if (!sessions.length) return;
-  const total = sessions.reduce((sum, s) => sum + s.minutes, 0);
-  window.location.href = `shortcuts://run-shortcut?name=Log%20Mindful%20Minutes&input=text&text=${total}`;
+  const total=sessions.reduce((sum,s)=>sum+s.minutes, 0);
+  window.location.href=`shortcuts://run-shortcut?name=Log%20Mindful%20Minutes&input=text&text=${total}`;
 });
-document.getElementById('csv-export-btn').addEventListener('click', () => {
-  const sessions = JSON.parse(localStorage.getItem('time_sessions')||'[]');
+document.getElementById('csv-export-btn').addEventListener('click', ()=>{
+  const sessions=JSON.parse(localStorage.getItem('time_sessions')||'[]');
   if (!sessions.length) return;
-  const rows = sessions.map(s => {
-    const d = new Date(s.ts);
+  const rows=sessions.map(s=>{
+    const d=new Date(s.ts);
     return `${d.toLocaleDateString()},${d.toLocaleTimeString()},${s.minutes},${s.complete?'yes':'no'}`;
   });
-  const blob = new Blob(['Date,Time,Duration (min),Complete\n' + rows.join('\n')], { type:'text/csv' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'time-sessions.csv'; a.click();
+  const blob=new Blob(['Date,Time,Duration (min),Complete\n'+rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='time-sessions.csv'; a.click();
 });
 
 /* ─── SETTINGS ─── */
-document.getElementById('request-notif-btn').addEventListener('click', async () => {
-  const r = await Notification.requestPermission();
-  document.getElementById('notif-status-text').textContent = r === 'granted' ? 'Granted ✓' : 'Denied';
+document.getElementById('request-notif-btn').addEventListener('click', async ()=>{
+  const r=await Notification.requestPermission();
+  document.getElementById('notif-status-text').textContent=r==='granted'?'Granted ✓':'Denied';
 });
-document.getElementById('strike-count').addEventListener('input', e => S.strikes = parseInt(e.target.value)||1);
-document.getElementById('clear-log-btn').addEventListener('click', () => {
-  if (confirm('Clear all sessions?')) { localStorage.removeItem('time_sessions'); renderLog(); }
+document.getElementById('strike-count').addEventListener('input', e=>S.strikes=parseInt(e.target.value)||1);
+document.getElementById('clear-log-btn').addEventListener('click', ()=>{
+  if(confirm('Clear all sessions?')){localStorage.removeItem('time_sessions'); renderLog();}
 });
 
 /* ─── SW ─── */
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js').catch(()=>{});
 
 /* ─── INIT ─── */
-(function() {
-  updateDisplay(); updateRing(); updateConfigSummary(); buildIntervalDots(); renderUserPresets(); loadSounds();
-  if (Notification.permission === 'granted') document.getElementById('notif-status-text').textContent = 'Granted ✓';
+(function(){
+  updateDisplay(); updateConfigSummary(); buildIntervalDots(); renderUserPresets(); loadSounds();
+  if(Notification.permission==='granted') document.getElementById('notif-status-text').textContent='Granted ✓';
 })();
 </script>
 </body>
