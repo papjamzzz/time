@@ -459,9 +459,9 @@ body {
   <main class="main">
     <div class="timer-face">
       <div class="timer-display" id="timer-display">60</div>
-      <div class="timer-status"  id="timer-status">ready</div>
+      <div class="timer-status"  id="timer-status"></div>
       <div class="interval-dots" id="interval-dots"></div>
-      <div class="config-summary" id="config-summary">1 hour · no intervals</div>
+      <div class="config-summary" id="config-summary"></div>
     </div>
     <div class="controls">
       <button class="btn btn-secondary" id="btn-cancel">
@@ -955,7 +955,7 @@ function cancelTimer() {
   running = false; paused = false; remainSec = totalSec = S.durationSec;
   scheduledBells = []; setPlayState(false); releaseWakeLock();
   updateDisplay(); buildIntervalDots();
-  document.getElementById('timer-status').textContent = 'ready';
+  document.getElementById('timer-status').textContent = '';
   document.getElementById('timer-display').classList.remove('completed');
 }
 
@@ -964,7 +964,7 @@ function restartTimer() {
   running = false; paused = false; remainSec = totalSec = S.durationSec;
   scheduledBells = []; setPlayState(false); releaseWakeLock();
   updateDisplay(); buildIntervalDots();
-  document.getElementById('timer-status').textContent = 'ready';
+  document.getElementById('timer-status').textContent = '';
   document.getElementById('timer-display').classList.remove('completed');
 }
 
@@ -1021,15 +1021,7 @@ function updateIntervalDots(completedIdx) {
   });
 }
 
-function updateConfigSummary() {
-  const mins = S.durationSec / 60;
-  const dur  = mins >= 60
-    ? (mins % 60 === 0 ? Math.floor(mins/60) + (Math.floor(mins/60) === 1 ? ' hr' : ' hrs')
-      : (mins/60).toFixed(1) + ' hrs')
-    : mins + ' min';
-  const intv = S.intervalCount > 1 ? ` · ${S.intervalCount} intervals` : ' · no intervals';
-  document.getElementById('config-summary').textContent = dur + intv;
-}
+function updateConfigSummary() { /* no text on main screen */ }
 
 /* ══════════════════════════════════════════════
    DRUM PICKER
