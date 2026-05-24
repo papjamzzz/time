@@ -669,8 +669,10 @@ let audioCtx = null, wakeLockRef = null;
 /* ─── AUDIO ─── */
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
+
 function synthBell(ctx, when = 0) {
   [[432, 0.6, 4], [432*2.756, 0.18, 2.4]].forEach(([f, vol, dur]) => {
     const osc = ctx.createOscillator(), g = ctx.createGain();
@@ -684,25 +686,49 @@ function synthBell(ctx, when = 0) {
     osc.start(when); osc.stop(when+dur+0.1);
   });
 }
+
+// Decoded buffer cache — loaded on sound selection so it's ready at bell time
+let bellBuffer = null;
+let bellBufferFor = null;
+
+async function preloadBell() {
+  if (S.sound === 'synth') { bellBuffer = null; bellBufferFor = null; return; }
+  if (bellBufferFor === S.sound) return; // already loaded
+  try {
+    const ctx = getCtx();
+    const res = await fetch(`/sounds/${encodeURIComponent(S.sound)}`);
+    const raw = await res.arrayBuffer();
+    bellBuffer = await ctx.decodeAudioData(raw);
+    bellBufferFor = S.sound;
+  } catch(e) {
+    bellBuffer = null; bellBufferFor = null;
+  }
+}
+
 function playBell(when = 0, strikes = 1) {
   const ctx = getCtx();
-  if (S.sound === 'synth') {
+  if (S.sound === 'synth' || !bellBuffer) {
     for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i * 1.4);
     return;
   }
-  // Use HTML Audio — supports 24-bit WAV, MP3, AIFF without decodeAudioData
-  const url = `/sounds/${encodeURIComponent(S.sound)}`;
   for (let i = 0; i < strikes; i++) {
-    setTimeout(() => {
-      const a = new Audio(url);
-      a.play().catch(() => synthBell(getCtx(), getCtx().currentTime));
-    }, (when + i * 1.4) * 1000);
+    const src = ctx.createBufferSource();
+    src.buffer = bellBuffer;
+    src.connect(ctx.destination);
+    src.start(ctx.currentTime + when + i * 1.4);
   }
 }
+
 window.previewSound = function(fn) {
   if (fn === 'synth') { const c=getCtx(); synthBell(c, c.currentTime); return; }
-  const a = new Audio(`/sounds/${encodeURIComponent(fn)}`);
-  a.play().catch(() => { const c=getCtx(); synthBell(c, c.currentTime); });
+  // Temporarily set sound, preload if needed, play
+  const prev = S.sound;
+  S.sound = fn;
+  preloadBell().then(() => {
+    playBell(0, 1);
+    S.sound = prev;
+    if (prev !== fn) { bellBuffer = null; bellBufferFor = null; preloadBell(); }
+  });
 };
 
 /* ─── NOTIFY / VIBRATE ─── */
@@ -869,6 +895,7 @@ document.getElementById('btn-config').addEventListener('click', ()=>openSheet('c
 
 /* ─── CONTROLS ─── */
 document.getElementById('btn-play').addEventListener('click', ()=>{
+  getCtx(); preloadBell(); // ensure context live + buffer ready on first gesture
   running ? pauseTimer() : startTimer();
 });
 let cancelHold;
@@ -979,6 +1006,7 @@ async function loadSounds() {
         if(e.target.tagName==='BUTTON') return;
         sl.querySelectorAll('.sound-row').forEach(x=>x.classList.remove('active'));
         r.classList.add('active'); S.sound=r.dataset.sound;
+        bellBuffer=null; bellBufferFor=null; preloadBell();
       })
     );
     if (list.length && S.sound==='synth') {
@@ -986,6 +1014,7 @@ async function loadSounds() {
       sl.querySelector('[data-sound="synth"]')?.classList.remove('active');
       sl.querySelectorAll('.sound-row')[1]?.classList.add('active');
     }
+    preloadBell();
   } catch(e){}
 }
 window.deleteSound=async function(fn) {
