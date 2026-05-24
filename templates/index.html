@@ -1323,7 +1323,7 @@ async function renderSounds() {
   el.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:8px 0">Loading…</div>';
   try {
     const uploaded = await (await fetch('/api/sounds')).json();
-    _soundsList = [{name: 'Synthesized Bell', filename: 'builtin', isBuiltIn: true}, ...uploaded];
+    _soundsList = [{name: 'Yoga Meditation Bells', filename: 'builtin', isBuiltIn: true}, ...uploaded];
   } catch(e) {
     _soundsList = [{name: 'Synthesized Bell', filename: 'builtin', isBuiltIn: true}];
   }
@@ -1358,7 +1358,7 @@ async function renderSounds() {
 }
 
 function previewSound(s) {
-  if (s.isBuiltIn) { playTestTone(); return; }
+  if (s.isBuiltIn) { ringBell(1); return; }
   fetch('/sounds/' + s.filename)
     .then(r => r.arrayBuffer())
     .then(ab => {
