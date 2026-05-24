@@ -411,6 +411,28 @@ body {
   .timer-display { font-size: 72px; }
   .main { gap: 14px; }
 }
+
+/* ── DASHBOARD SETTINGS ── */
+.settings-section-hdr {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(232,201,109,0.60);
+  margin: 22px 0 8px; padding: 0 2px;
+}
+.s-card {
+  background: rgba(255,248,235,0.04);
+  border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+}
+.s-row {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+  padding: 14px 16px; min-height: 54px;
+}
+.s-row + .s-row { border-top: 1px solid rgba(232,201,109,0.07); }
+.s-row-left { flex: 1; min-width: 0; }
+.s-row-label { font-size: 15px; color: var(--white); line-height: 1.3; }
+.s-row-sub   { font-size: 12px; color: var(--dim); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -474,134 +496,88 @@ body {
 <!-- CONFIG SHEET -->
 <div class="sheet" id="config-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title">Configure</div>
+  <div class="sheet-title">Session</div>
 
-  <div class="form-row">
-    <div class="form-label">Duration</div>
-    <div class="duration-grid">
-      <div class="dur-chip" data-min="5">5 min</div>
-      <div class="dur-chip" data-min="10">10 min</div>
-      <div class="dur-chip" data-min="15">15 min</div>
-      <div class="dur-chip" data-min="20">20 min</div>
-      <div class="dur-chip" data-min="30">30 min</div>
-      <div class="dur-chip" data-min="45">45 min</div>
-      <div class="dur-chip active" data-min="60">1 hour</div>
-      <div class="dur-chip" data-min="90">90 min</div>
-      <div class="dur-chip" data-min="120">2 hours</div>
-    </div>
-    <div class="time-input-row mt-8">
-      <input class="time-seg" id="custom-h" type="number" min="0" max="23" placeholder="h">
-      <span class="time-colon">:</span>
-      <input class="time-seg" id="custom-m" type="number" min="0" max="59" placeholder="mm">
-    </div>
+  <div class="settings-section-hdr" style="margin-top:4px">Duration</div>
+  <div class="duration-grid">
+    <div class="dur-chip" data-min="5">5 min</div>
+    <div class="dur-chip" data-min="10">10 min</div>
+    <div class="dur-chip" data-min="15">15 min</div>
+    <div class="dur-chip" data-min="20">20 min</div>
+    <div class="dur-chip" data-min="30">30 min</div>
+    <div class="dur-chip" data-min="45">45 min</div>
+    <div class="dur-chip active" data-min="60">1 hour</div>
+    <div class="dur-chip" data-min="90">90 min</div>
+    <div class="dur-chip" data-min="120">2 hours</div>
+  </div>
+  <div class="time-input-row mt-8">
+    <input class="time-seg" id="custom-h" type="number" min="0" max="23" placeholder="h">
+    <span class="time-colon">:</span>
+    <input class="time-seg" id="custom-m" type="number" min="0" max="59" placeholder="mm">
   </div>
 
-  <div class="divider"></div>
-
-  <div class="form-row">
-    <div class="form-label">Saved Presets</div>
-    <div class="presets-wrap" id="presets-scroll">
-      <div class="preset-chip" data-min="5">5 min</div>
-      <div class="preset-chip" data-min="10">10 min</div>
-      <div class="preset-chip" data-min="20">20 min</div>
-      <div class="preset-chip" data-min="30">30 min</div>
-      <div class="preset-chip active" data-min="60">1 hour</div>
-      <div class="preset-chip" data-min="120">2 hours</div>
-      <div class="preset-add" id="preset-add">+</div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="form-row">
-    <div class="form-label">Intervals</div>
-    <div class="toggle-row" style="padding-top:0;border-bottom:none;margin-bottom:8px;">
-      <div>
-        <div class="toggle-label">Enable intervals</div>
-        <div class="toggle-sub">Bell at equal intervals</div>
+  <div class="settings-section-hdr">Intervals</div>
+  <div class="s-card">
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label">Enable intervals</div>
+        <div class="s-row-sub">Bell at equal time divisions</div>
       </div>
       <div class="toggle" id="interval-toggle"></div>
     </div>
-    <div id="interval-fields" class="hidden">
+    <div id="interval-fields" class="hidden" style="border-top:1px solid rgba(232,201,109,0.07);padding:12px 16px 14px">
       <div class="interval-row">
-        <input class="form-input" id="interval-count" type="number" min="2" max="20" value="2" style="text-align:center;">
+        <input class="form-input" id="interval-count" type="number" min="2" max="20" value="2" style="text-align:center;max-width:80px;">
         <span style="color:var(--dim);font-size:13px;flex-shrink:0;">equal parts</span>
       </div>
-      <div class="interval-preview" id="interval-preview">2 intervals · 30 min each</div>
+      <div class="interval-preview" id="interval-preview" style="margin-top:8px">2 intervals · 30 min each</div>
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="form-row">
-    <div class="form-label">Alert Mode</div>
-    <div class="mode-pills">
-      <div class="mode-pill active" data-mode="audio">🔔 Audio</div>
-      <div class="mode-pill" data-mode="notify">📳 Notify</div>
-      <div class="mode-pill" data-mode="silent">🔕 Silent</div>
-    </div>
+  <div class="settings-section-hdr">Alert</div>
+  <div class="mode-pills">
+    <div class="mode-pill active" data-mode="audio">🔔 Audio</div>
+    <div class="mode-pill" data-mode="notify">📳 Notify</div>
+    <div class="mode-pill" data-mode="silent">🔕 Silent</div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="form-row">
-    <div class="form-label">Bells</div>
-    <div class="toggle-row" style="padding-top:0;border:none;margin-bottom:4px;">
-      <div class="toggle-label">Start bell</div>
+  <div class="settings-section-hdr">Bells</div>
+  <div class="s-card">
+    <div class="s-row">
+      <div class="s-row-label">Start bell</div>
       <div class="toggle on" id="start-bell-toggle"></div>
     </div>
-    <div class="toggle-row" style="padding-top:0;border:none;margin-bottom:4px;">
-      <div class="toggle-label">End bell</div>
+    <div class="s-row">
+      <div class="s-row-label">End bell</div>
       <div class="toggle on" id="end-bell-toggle"></div>
     </div>
-    <div class="toggle-row" style="padding-top:0;border:none;margin-bottom:14px;">
-      <div class="toggle-label">Interval bells</div>
+    <div class="s-row">
+      <div class="s-row-label">Interval bells</div>
       <div class="toggle on" id="interval-bell-toggle"></div>
     </div>
-    <div class="form-label">Sound file</div>
-    <div class="sound-list mt-8" id="sound-list">
-      <div class="sound-row active" data-sound="synth">
-        <div class="sound-dot"></div>
-        <div class="sound-name">Synthesized Bell</div>
-        <span class="synth-badge">BUILT-IN</span>
-        <button class="sound-preview" onclick="previewSound('synth')">▶</button>
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label">Strike count</div>
+        <div class="s-row-sub">Times the bell rings per event</div>
       </div>
-    </div>
-    <div class="upload-zone mt-12" id="upload-zone">
-      <input type="file" id="sound-upload" accept=".wav,.mp3,.aif,.aiff,.ogg,.m4a,.flac" multiple>
-      <div class="upload-icon">🎵</div>
-      <div class="upload-text">Upload audio files</div>
-      <div class="upload-sub">WAV · MP3 · AIFF · OGG · M4A</div>
+      <input class="form-input" id="strike-count" type="number" min="1" max="9" value="1"
+        style="width:64px;text-align:center;flex-shrink:0;padding:9px 6px;">
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="form-row">
-    <div class="form-label">iOS Shortcuts</div>
-    <div class="toggle-row" style="padding-top:0;border:none;margin-bottom:8px;">
-      <div>
-        <div class="toggle-label">On start</div>
-        <div class="toggle-sub">e.g. Do Not Disturb on</div>
+  <div class="settings-section-hdr">Sound</div>
+  <div class="s-card">
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label" id="bell-sound-name">Soft Bell Hit</div>
+        <div class="s-row-sub"   id="bell-sound-status">Loading…</div>
       </div>
-      <div class="toggle" id="shortcut-start-toggle"></div>
-    </div>
-    <div id="shortcut-start-fields" class="hidden mt-8">
-      <input class="form-input" id="shortcut-start-name" type="text" placeholder="Shortcut name">
-    </div>
-    <div class="toggle-row" style="padding-top:12px;border:none;margin-bottom:8px;">
-      <div>
-        <div class="toggle-label">On end</div>
-        <div class="toggle-sub">e.g. Do Not Disturb off</div>
-      </div>
-      <div class="toggle" id="shortcut-end-toggle"></div>
-    </div>
-    <div id="shortcut-end-fields" class="hidden mt-8">
-      <input class="form-input" id="shortcut-end-name" type="text" placeholder="Shortcut name">
+      <button class="btn-ghost" id="preview-bell-btn"
+        style="width:auto;padding:8px 14px;font-size:13px;flex:none;border-color:var(--border-hi);color:var(--dim);">▶ Preview</button>
     </div>
   </div>
 
-  <button class="btn-primary" id="config-save">Apply</button>
+  <button class="btn-primary" id="config-save" style="margin-top:24px">Apply</button>
 </div>
 
 <!-- LOG SHEET -->
@@ -619,29 +595,64 @@ body {
 <div class="sheet" id="settings-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title">Settings</div>
-  <div class="toggle-row">
-    <div>
-      <div class="toggle-label">Wake Lock</div>
-      <div class="toggle-sub">Keep screen on during session</div>
+
+  <div class="settings-section-hdr" style="margin-top:4px">System</div>
+  <div class="s-card">
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label">Wake Lock</div>
+        <div class="s-row-sub">Keep screen on during session</div>
+      </div>
+      <div class="toggle on" id="wakelock-toggle"></div>
     </div>
-    <div class="toggle on" id="wakelock-toggle"></div>
-  </div>
-  <div class="toggle-row">
-    <div>
-      <div class="toggle-label">Notifications</div>
-      <div class="toggle-sub" id="notif-status-text">Tap to request</div>
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label">Notifications</div>
+        <div class="s-row-sub" id="notif-status-text">Tap to request</div>
+      </div>
+      <button class="btn-ghost" id="request-notif-btn"
+        style="width:auto;padding:7px 14px;flex-shrink:0;font-size:12px;flex:none;">Request</button>
     </div>
-    <button class="btn-ghost" id="request-notif-btn" style="width:auto;padding:6px 12px;flex-shrink:0;font-size:12px;flex:none;">Request</button>
   </div>
-  <div class="toggle-row" style="border:none;">
-    <div>
-      <div class="toggle-label">Strike count</div>
-      <div class="toggle-sub">Times the bell rings</div>
+
+  <div class="settings-section-hdr">Saved Presets</div>
+  <div class="presets-wrap" id="presets-scroll">
+    <div class="preset-chip" data-min="5">5 min</div>
+    <div class="preset-chip" data-min="10">10 min</div>
+    <div class="preset-chip" data-min="20">20 min</div>
+    <div class="preset-chip" data-min="30">30 min</div>
+    <div class="preset-chip active" data-min="60">1 hour</div>
+    <div class="preset-chip" data-min="120">2 hours</div>
+    <div class="preset-add" id="preset-add">+</div>
+  </div>
+
+  <div class="settings-section-hdr">iOS Shortcuts</div>
+  <div class="s-card">
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label">On start</div>
+        <div class="s-row-sub">e.g. Do Not Disturb on</div>
+      </div>
+      <div class="toggle" id="shortcut-start-toggle"></div>
     </div>
-    <input class="form-input" id="strike-count" type="number" min="1" max="9" value="1"
-      style="width:64px;text-align:center;flex-shrink:0;padding:8px;">
+    <div id="shortcut-start-fields" class="hidden"
+      style="padding:12px 16px;border-top:1px solid rgba(232,201,109,0.07)">
+      <input class="form-input" id="shortcut-start-name" type="text" placeholder="Shortcut name">
+    </div>
+    <div class="s-row">
+      <div class="s-row-left">
+        <div class="s-row-label">On end</div>
+        <div class="s-row-sub">e.g. Do Not Disturb off</div>
+      </div>
+      <div class="toggle" id="shortcut-end-toggle"></div>
+    </div>
+    <div id="shortcut-end-fields" class="hidden"
+      style="padding:12px 16px;border-top:1px solid rgba(232,201,109,0.07)">
+      <input class="form-input" id="shortcut-end-name" type="text" placeholder="Shortcut name">
+    </div>
   </div>
-  <div class="divider"></div>
+
+  <div class="settings-section-hdr" style="margin-top:24px">Data</div>
   <button class="btn-ghost" id="clear-log-btn"
     style="color:var(--danger);border-color:rgba(255,90,90,0.3);width:100%;">Clear Session Log</button>
 </div>
@@ -901,9 +912,13 @@ document.getElementById('log-btn').addEventListener('click', ()=>{ renderLog(); 
 document.getElementById('btn-config').addEventListener('click', ()=>openSheet('config-sheet'));
 
 /* ─── CONTROLS ─── */
-document.getElementById('btn-play').addEventListener('click', ()=>{
-  getCtx(); preloadBell(); // ensure context live + buffer ready on first gesture
+document.getElementById('btn-play').addEventListener('click', async ()=>{
+  await resumeCtx();   // unlock AudioContext on user gesture
+  await preloadBell(); // ensure buffer decoded before timer starts
   running ? pauseTimer() : startTimer();
+});
+document.getElementById('preview-bell-btn').addEventListener('click', async ()=>{
+  await resumeCtx(); previewSound(S.sound);
 });
 let cancelHold;
 document.getElementById('btn-cancel').addEventListener('click', cancelTimer);
@@ -992,64 +1007,21 @@ document.getElementById('config-save').addEventListener('click', ()=>{
 
 /* ─── SOUNDS ─── */
 async function loadSounds() {
+  const nameEl   = document.getElementById('bell-sound-name');
+  const statusEl = document.getElementById('bell-sound-status');
   try {
-    const list=await (await fetch('/api/sounds')).json();
-    const sl=document.getElementById('sound-list');
-    sl.innerHTML=`<div class="sound-row ${S.sound==='synth'?'active':''}" data-sound="synth">
-      <div class="sound-dot"></div><div class="sound-name">Synthesized Bell</div>
-      <span class="synth-badge">BUILT-IN</span>
-      <button class="sound-preview" data-preview="synth">▶</button></div>`;
-    list.forEach(s=>{
-      const row=document.createElement('div');
-      row.className='sound-row'+(S.sound===s.filename?' active':'');
-      row.dataset.sound=s.filename;
-      const nameEl=document.createElement('div'); nameEl.className='sound-dot';
-      row.innerHTML='';
-      row.appendChild(nameEl);
-      const nm=document.createElement('div'); nm.className='sound-name'; nm.textContent=s.name;
-      row.appendChild(nm);
-      const prev=document.createElement('button'); prev.className='sound-preview';
-      prev.textContent='▶'; prev.dataset.preview=s.filename;
-      row.appendChild(prev);
-      const del=document.createElement('button'); del.className='sound-preview';
-      del.style.color='var(--danger)'; del.textContent='✕'; del.dataset.del=s.filename;
-      row.appendChild(del);
-      sl.appendChild(row);
-    });
-    // Event delegation — no inline onclick, handles spaces in filenames correctly
-    sl.addEventListener('click', e=>{
-      const preview = e.target.dataset.preview;
-      const del     = e.target.dataset.del;
-      if (preview !== undefined) { previewSound(preview); return; }
-      if (del     !== undefined) { deleteSound(del);      return; }
-      const row = e.target.closest('.sound-row');
-      if (!row) return;
-      sl.querySelectorAll('.sound-row').forEach(x=>x.classList.remove('active'));
-      row.classList.add('active'); S.sound=row.dataset.sound;
-      bellBuffer=null; bellBufferFor=null; preloadBell();
-    });
-    if (list.length && S.sound==='synth') {
-      S.sound=list[0].filename;
-      sl.querySelector('[data-sound="synth"]')?.classList.remove('active');
-      sl.querySelectorAll('.sound-row')[1]?.classList.add('active');
+    const list = await (await fetch('/api/sounds')).json();
+    if (list.length) {
+      S.sound = list[0].filename;
+      if (nameEl)   nameEl.textContent   = list[0].name.replace(/_/g,' ');
+      if (statusEl) statusEl.textContent = 'Tap ▶ to preview';
+    } else {
+      S.sound = 'synth';
+      if (nameEl)   nameEl.textContent   = 'Synthesized Bell';
+      if (statusEl) statusEl.textContent = 'No file — using built-in synth';
     }
-    preloadBell();
-  } catch(e){}
-}
-window.deleteSound=async function(fn) {
-  await fetch(`/api/sounds/${encodeURIComponent(fn)}`,{method:'DELETE'});
-  if(S.sound===fn) S.sound='synth'; loadSounds();
-};
-const uploadZone=document.getElementById('upload-zone');
-const soundUpload=document.getElementById('sound-upload');
-uploadZone.addEventListener('click', ()=>soundUpload.click());
-uploadZone.addEventListener('dragover', e=>{e.preventDefault(); uploadZone.classList.add('drag');});
-uploadZone.addEventListener('dragleave', ()=>uploadZone.classList.remove('drag'));
-uploadZone.addEventListener('drop', e=>{e.preventDefault(); uploadZone.classList.remove('drag'); uploadFiles(e.dataTransfer.files);});
-soundUpload.addEventListener('change', ()=>uploadFiles(soundUpload.files));
-async function uploadFiles(files) {
-  for (const f of files) { const fd=new FormData(); fd.append('file',f); await fetch('/api/sounds/upload',{method:'POST',body:fd}); }
-  loadSounds();
+    bellBuffer = null; bellBufferFor = null;
+  } catch(e) { S.sound = 'synth'; }
 }
 
 /* ─── PRESETS ─── */
