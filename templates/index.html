@@ -689,16 +689,50 @@ let tickInterval = null, scheduledBells = [];
 let wakeLockRef = null;
 
 /* ─── AUDIO ─── */
-const _bell = new Audio('/static/sounds/Soft_Bell_Hit.mp3');
-_bell.preload = 'auto';
+var _audioCtx = null;
+var _bellBuffer = null;
+
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+// Fetch and decode bell MP3 into an AudioBuffer on load
+fetch('/static/sounds/Soft_Bell_Hit.mp3')
+  .then(function(r) { return r.arrayBuffer(); })
+  .then(function(ab) {
+    getAudioCtx().decodeAudioData(ab,
+      function(buf) { _bellBuffer = buf; console.log('bell ready:', buf.duration.toFixed(2) + 's'); },
+      function(e)   { console.error('bell decode error:', e); }
+    );
+  })
+  .catch(function(e) { console.error('bell fetch error:', e); });
+
+function _playBuffer(buf, when) {
+  var ctx = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  var src  = ctx.createBufferSource();
+  var gain = ctx.createGain();
+  src.buffer = buf;
+  src.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(1.0, ctx.currentTime);
+  src.start(when || ctx.currentTime);
+}
 
 function ringBell(n) {
   n = n || 1;
-  for (var i = 0; i < n; i++) {
-    setTimeout(function() {
-      var a = new Audio('/static/sounds/Soft_Bell_Hit.mp3');
-      a.play().catch(function(e){ console.warn('bell:', e); });
-    }, i * 1400);
+  var ctx = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  if (_bellBuffer) {
+    for (var i = 0; i < n; i++) _playBuffer(_bellBuffer, ctx.currentTime + i * 1.4);
+  } else {
+    // fallback synth if buffer not loaded yet
+    for (var j = 0; j < n; j++) {
+      (function(j) {
+        setTimeout(function() { playTestTone(); }, j * 1400);
+      })(j);
+    }
   }
 }
 
@@ -710,23 +744,19 @@ function playBell(when, strikes) {
 window.previewSound = function() { ringBell(1); };
 
 function playTestTone() {
-  try {
-    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 440;
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0.4, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 1.2);
-    console.log('test tone: AudioContext ok, state=' + ctx.state);
-  } catch(e) {
-    console.error('test tone failed:', e);
-    alert('Audio context error: ' + e.message);
-  }
+  var ctx = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  var osc  = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.frequency.value = 440;
+  osc.type = 'sine';
+  gain.gain.setValueAtTime(0.4, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + 1.2);
+  console.log('test tone played, ctx state=' + ctx.state);
 }
 
 /* ─── NOTIFY / VIBRATE ─── */
