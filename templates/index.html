@@ -669,8 +669,13 @@ let audioCtx = null, wakeLockRef = null;
 /* ─── AUDIO ─── */
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
+}
+
+async function resumeCtx() {
+  const ctx = getCtx();
+  if (ctx.state === 'suspended') await ctx.resume();
+  return ctx;
 }
 
 function synthBell(ctx, when = 0) {
@@ -687,26 +692,27 @@ function synthBell(ctx, when = 0) {
   });
 }
 
-// Decoded buffer cache — loaded on sound selection so it's ready at bell time
+// Decoded buffer cache
 let bellBuffer = null;
 let bellBufferFor = null;
 
 async function preloadBell() {
   if (S.sound === 'synth') { bellBuffer = null; bellBufferFor = null; return; }
-  if (bellBufferFor === S.sound) return; // already loaded
+  if (bellBufferFor === S.sound && bellBuffer) return;
   try {
-    const ctx = getCtx();
+    const ctx = await resumeCtx();
     const res = await fetch(`/sounds/${encodeURIComponent(S.sound)}`);
     const raw = await res.arrayBuffer();
     bellBuffer = await ctx.decodeAudioData(raw);
     bellBufferFor = S.sound;
   } catch(e) {
+    console.warn('preloadBell failed:', e);
     bellBuffer = null; bellBufferFor = null;
   }
 }
 
-function playBell(when = 0, strikes = 1) {
-  const ctx = getCtx();
+async function playBell(when = 0, strikes = 1) {
+  const ctx = await resumeCtx();
   if (S.sound === 'synth' || !bellBuffer) {
     for (let i = 0; i < strikes; i++) synthBell(ctx, ctx.currentTime + when + i * 1.4);
     return;
@@ -719,16 +725,17 @@ function playBell(when = 0, strikes = 1) {
   }
 }
 
-window.previewSound = function(fn) {
-  if (fn === 'synth') { const c=getCtx(); synthBell(c, c.currentTime); return; }
-  // Temporarily set sound, preload if needed, play
-  const prev = S.sound;
-  S.sound = fn;
-  preloadBell().then(() => {
-    playBell(0, 1);
-    S.sound = prev;
-    if (prev !== fn) { bellBuffer = null; bellBufferFor = null; preloadBell(); }
-  });
+// Note: previewSound called via data-sound attribute + event delegation (no inline onclick)
+window.previewSound = async function(fn) {
+  const ctx = await resumeCtx();
+  if (fn === 'synth') { synthBell(ctx, ctx.currentTime); return; }
+  try {
+    const res = await fetch(`/sounds/${encodeURIComponent(fn)}`);
+    const raw = await res.arrayBuffer();
+    const buf = await ctx.decodeAudioData(raw);
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.connect(ctx.destination); src.start(ctx.currentTime);
+  } catch(e) { synthBell(ctx, ctx.currentTime); }
 };
 
 /* ─── NOTIFY / VIBRATE ─── */
@@ -991,24 +998,36 @@ async function loadSounds() {
     sl.innerHTML=`<div class="sound-row ${S.sound==='synth'?'active':''}" data-sound="synth">
       <div class="sound-dot"></div><div class="sound-name">Synthesized Bell</div>
       <span class="synth-badge">BUILT-IN</span>
-      <button class="sound-preview" onclick="previewSound('synth')">▶</button></div>`;
+      <button class="sound-preview" data-preview="synth">▶</button></div>`;
     list.forEach(s=>{
       const row=document.createElement('div');
       row.className='sound-row'+(S.sound===s.filename?' active':'');
       row.dataset.sound=s.filename;
-      row.innerHTML=`<div class="sound-dot"></div><div class="sound-name">${s.name}</div>
-        <button class="sound-preview" onclick="previewSound(${JSON.stringify(s.filename)})">▶</button>
-        <button class="sound-preview" style="color:var(--danger)" onclick="deleteSound(${JSON.stringify(s.filename)})">✕</button>`;
+      const nameEl=document.createElement('div'); nameEl.className='sound-dot';
+      row.innerHTML='';
+      row.appendChild(nameEl);
+      const nm=document.createElement('div'); nm.className='sound-name'; nm.textContent=s.name;
+      row.appendChild(nm);
+      const prev=document.createElement('button'); prev.className='sound-preview';
+      prev.textContent='▶'; prev.dataset.preview=s.filename;
+      row.appendChild(prev);
+      const del=document.createElement('button'); del.className='sound-preview';
+      del.style.color='var(--danger)'; del.textContent='✕'; del.dataset.del=s.filename;
+      row.appendChild(del);
       sl.appendChild(row);
     });
-    sl.querySelectorAll('.sound-row').forEach(r=>
-      r.addEventListener('click', e=>{
-        if(e.target.tagName==='BUTTON') return;
-        sl.querySelectorAll('.sound-row').forEach(x=>x.classList.remove('active'));
-        r.classList.add('active'); S.sound=r.dataset.sound;
-        bellBuffer=null; bellBufferFor=null; preloadBell();
-      })
-    );
+    // Event delegation — no inline onclick, handles spaces in filenames correctly
+    sl.addEventListener('click', e=>{
+      const preview = e.target.dataset.preview;
+      const del     = e.target.dataset.del;
+      if (preview !== undefined) { previewSound(preview); return; }
+      if (del     !== undefined) { deleteSound(del);      return; }
+      const row = e.target.closest('.sound-row');
+      if (!row) return;
+      sl.querySelectorAll('.sound-row').forEach(x=>x.classList.remove('active'));
+      row.classList.add('active'); S.sound=row.dataset.sound;
+      bellBuffer=null; bellBufferFor=null; preloadBell();
+    });
     if (list.length && S.sound==='synth') {
       S.sound=list[0].filename;
       sl.querySelector('[data-sound="synth"]')?.classList.remove('active');
