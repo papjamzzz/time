@@ -982,7 +982,7 @@ function onComplete() {
   td.classList.remove('running'); td.classList.add('completed');
   _lastSessionTs = Date.now();
   logSession(S.durationSec, true);
-  setTimeout(() => { td.classList.remove('completed'); showJournalPrompt(S.durationSec, true); }, 1400);
+  setTimeout(() => { td.classList.remove('completed'); }, 1400);
 }
 
 function setPlayState(on) {
