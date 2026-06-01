@@ -1307,17 +1307,24 @@ function loadReminderPrefs() {
 /* ══════════════════════════════════════════════
    SOUNDS SHEET
 ══════════════════════════════════════════════ */
-var _soundsList = []; // [{name, filename, isBuiltIn}]
-var _activeSoundFilename = 'builtin';
+var _soundsList = []; // [{name, filename, isBuiltIn, staticFile}]
+var _activeSoundFilename = 'builtin-soft';
+
+const BUILT_IN_BELLS = [
+  { name: 'Soft Bell',          filename: 'builtin-soft',     isBuiltIn: true, staticFile: 'Soft_Bell_Hit.wav' },
+  { name: 'Sharp Bell',         filename: 'builtin-sharp',    isBuiltIn: true, staticFile: 'Sharp Bell.mp3' },
+  { name: 'Small Bell Mellower',filename: 'builtin-mellower', isBuiltIn: true, staticFile: 'Small Bell Mellower.m4a' },
+  { name: 'Smooth Bell',        filename: 'builtin-smooth',   isBuiltIn: true, staticFile: 'Smooth Bell.mp3' },
+];
 
 async function renderSounds() {
   const el = document.getElementById('sounds-list');
   el.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:8px 0">Loading…</div>';
   try {
     const uploaded = await (await fetch('/api/sounds')).json();
-    _soundsList = [{name: 'Yoga Meditation Bells', filename: 'builtin', isBuiltIn: true}, ...uploaded];
+    _soundsList = [...BUILT_IN_BELLS, ...uploaded];
   } catch(e) {
-    _soundsList = [{name: 'Synthesized Bell', filename: 'builtin', isBuiltIn: true}];
+    _soundsList = [...BUILT_IN_BELLS];
   }
   el.innerHTML = '';
   _soundsList.forEach(s => {
@@ -1349,33 +1356,32 @@ async function renderSounds() {
   });
 }
 
-function previewSound(s) {
-  if (s.isBuiltIn) { ringBell(1); return; }
-  fetch('/sounds/' + s.filename)
+function _loadSoundFromUrl(url, onLoad) {
+  var ctx = getAudioCtx();
+  fetch(url)
     .then(r => r.arrayBuffer())
-    .then(ab => {
-      var ctx = getAudioCtx();
-      if (ctx.state === 'suspended') ctx.resume();
-      ctx.decodeAudioData(ab, buf => _playBuffer(buf, ctx.currentTime), e => console.error(e));
-    });
+    .then(ab => ctx.decodeAudioData(ab, onLoad, e => console.error(e)));
+}
+
+function previewSound(s) {
+  var url = s.isBuiltIn ? '/static/sounds/' + s.staticFile : '/sounds/' + s.filename;
+  _loadSoundFromUrl(url, buf => {
+    var ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    _playBuffer(buf, ctx.currentTime);
+  });
 }
 
 function selectSound(s) {
   _activeSoundFilename = s.filename;
-  if (s.isBuiltIn) {
-    loadBuiltInBell();
-  } else {
-    fetch('/sounds/' + s.filename)
-      .then(r => r.arrayBuffer())
-      .then(ab => getAudioCtx().decodeAudioData(ab, buf => { _bellBuffer = buf; }, e => console.error(e)));
-  }
+  var url = s.isBuiltIn ? '/static/sounds/' + s.staticFile : '/sounds/' + s.filename;
+  _loadSoundFromUrl(url, buf => { _bellBuffer = buf; });
   renderSounds();
 }
 
 function loadBuiltInBell() {
-  fetch('/static/sounds/Soft_Bell_Hit.wav')
-    .then(r => r.arrayBuffer())
-    .then(ab => getAudioCtx().decodeAudioData(ab, buf => { _bellBuffer = buf; }, e => console.error(e)));
+  var active = BUILT_IN_BELLS.find(b => b.filename === _activeSoundFilename) || BUILT_IN_BELLS[0];
+  _loadSoundFromUrl('/static/sounds/' + active.staticFile, buf => { _bellBuffer = buf; });
 }
 
 // Upload
