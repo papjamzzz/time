@@ -793,6 +793,27 @@ let _reminderTimer = null;
 let _lastSessionTs = null; // for journal prompt
 
 /* ══════════════════════════════════════════════
+   NATIVE BRIDGE
+   When running inside the Time native shell (not plain Safari), interval
+   and end bells are delivered as real scheduled OS notifications instead
+   of the in-page tick loop, because iOS suspends this page's JS the
+   instant the screen locks — the tick loop just stops, silently, which is
+   the bug this bridge exists to fix. The start bell still plays in-page
+   since the user is looking at the screen at that exact instant either way.
+══════════════════════════════════════════════ */
+const isNativeApp = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.timeNative);
+const NATIVE_SOUND_MAP = {
+  'builtin-soft': 'Soft_Bell_Hit',
+  'builtin-sharp': 'Sharp_Bell',
+  'builtin-mellower': 'Small_Bell_Mellower',
+  'builtin-smooth': 'Smooth_Bell',
+};
+function nativePost(msg) {
+  if (isNativeApp) window.webkit.messageHandlers.timeNative.postMessage(msg);
+}
+function nativeCancelBells() { nativePost({action: 'cancelBells'}); }
+
+/* ══════════════════════════════════════════════
    AUDIO
 ══════════════════════════════════════════════ */
 var _audioCtx = null;
@@ -899,6 +920,25 @@ function triggerShortcut(name) {
 /* ══════════════════════════════════════════════
    TIMER
 ══════════════════════════════════════════════ */
+// Posts native-scheduled notifications for whichever scheduledBells entries
+// aren't fired yet, with delay computed relative to right now — shared by a
+// fresh session start and a resume-from-pause (which need different delays
+// for the same underlying bell list).
+function nativeScheduleRemaining() {
+  if (!isNativeApp || S.alertMode === 'silent') return;
+  const elapsed = totalSec - remainSec;
+  const soundKey = NATIVE_SOUND_MAP[_activeSoundFilename] || '';
+  const bells = scheduledBells
+    .filter(b => !b.fired && (S.intervalBell || b.type === 'end'))
+    .map(b => ({
+      delay: b.at - elapsed,
+      sound: S.alertMode === 'audio' ? soundKey : '',
+      title: 'Time',
+      body: b.type === 'end' ? 'Session complete' : `Interval ${b.i} complete`,
+    }));
+  nativePost({action: 'scheduleBells', bells});
+}
+
 function scheduleBells() {
   scheduledBells = [];
   if (S.startBell && S.alertMode === 'audio') playBell(0, S.strikes);
@@ -909,6 +949,10 @@ function scheduleBells() {
       scheduledBells.push({at: step * i, type: 'interval', i, fired: false});
   }
   scheduledBells.push({at: totalSec, type: 'end', fired: false});
+
+  // Hand interval + end bells to the native shell so they fire on schedule
+  // even if the screen locks. Start bell stays in-page (see note above).
+  nativeScheduleRemaining();
 }
 
 function checkBells() {
@@ -917,13 +961,20 @@ function checkBells() {
     if (b.fired || elapsed < b.at) return;
     b.fired = true;
     if (b.type === 'end') {
-      if (S.alertMode === 'audio' && S.endBell) playBell(0, S.strikes);
-      if (S.alertMode === 'notify') { notify('Time', 'Session complete'); vib([400,200,400]); }
+      // In native mode the end bell already fired as a scheduled OS
+      // notification (see scheduleBells) — playing it again here would
+      // double it up whenever the page is still foregrounded/visible.
+      if (!isNativeApp) {
+        if (S.alertMode === 'audio' && S.endBell) playBell(0, S.strikes);
+        if (S.alertMode === 'notify') { notify('Time', 'Session complete'); vib([400,200,400]); }
+      }
       if (S.dndEnabled) triggerShortcut(S.shortcutEnd);
       onComplete();
     } else {
-      if (S.alertMode === 'audio' && S.intervalBell) playBell(0, S.strikes);
-      if (S.alertMode === 'notify') { notify('Time', `Interval ${b.i} complete`); vib([200]); }
+      if (!isNativeApp) {
+        if (S.alertMode === 'audio' && S.intervalBell) playBell(0, S.strikes);
+        if (S.alertMode === 'notify') { notify('Time', `Interval ${b.i} complete`); vib([200]); }
+      }
       updateIntervalDots(b.i);
     }
   });
@@ -932,6 +983,7 @@ function checkBells() {
 function startTimer() {
   if (paused) {
     paused = false; running = true; setPlayState(true); acquireWakeLock();
+    nativeScheduleRemaining();
     tickInterval = setInterval(tick, 1000); return;
   }
   running = true; paused = false;
@@ -945,6 +997,7 @@ function startTimer() {
 function pauseTimer() {
   paused = true; running = false;
   clearInterval(tickInterval); setPlayState(false); releaseWakeLock();
+  nativeCancelBells();
   document.getElementById('timer-status').textContent = 'paused';
 }
 
@@ -954,6 +1007,7 @@ function cancelTimer() {
   clearInterval(tickInterval);
   running = false; paused = false; remainSec = totalSec = S.durationSec;
   scheduledBells = []; setPlayState(false); releaseWakeLock();
+  nativeCancelBells();
   updateDisplay(); buildIntervalDots();
   document.getElementById('timer-status').textContent = '';
   document.getElementById('timer-display').classList.remove('completed');
@@ -963,6 +1017,7 @@ function restartTimer() {
   clearInterval(tickInterval);
   running = false; paused = false; remainSec = totalSec = S.durationSec;
   scheduledBells = []; setPlayState(false); releaseWakeLock();
+  nativeCancelBells();
   updateDisplay(); buildIntervalDots();
   document.getElementById('timer-status').textContent = '';
   document.getElementById('timer-display').classList.remove('completed');
