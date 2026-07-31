@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, send_file, request
 from dotenv import load_dotenv
-import os, pathlib, json, uuid
+import os, pathlib
 
 load_dotenv()
 app = Flask(__name__)
