@@ -40,18 +40,30 @@ def upload_sound():
     f.save(dest)
     return jsonify({'name': pathlib.Path(safe_name).stem, 'filename': safe_name})
 
+def _resolve_sound_path(filename):
+    """Resolve a requested sound filename to a real path inside SOUNDS_DIR,
+    rejecting any '../' traversal that would escape the directory (filename
+    comes straight from the URL via a <path:> converter, which allows
+    slashes and '..' segments through unless we check the resolved path
+    ourselves)."""
+    candidate = (SOUNDS_DIR / filename).resolve()
+    sounds_root = SOUNDS_DIR.resolve()
+    if sounds_root not in candidate.parents and candidate != sounds_root:
+        return None
+    return candidate
+
 @app.route('/api/sounds/<path:filename>', methods=['DELETE'])
 def delete_sound(filename):
-    filepath = SOUNDS_DIR / filename
-    if filepath.exists() and filepath.suffix.lower() in AUDIO_EXTENSIONS:
+    filepath = _resolve_sound_path(filename)
+    if filepath and filepath.exists() and filepath.suffix.lower() in AUDIO_EXTENSIONS:
         filepath.unlink()
         return jsonify({'ok': True})
     return jsonify({'error': 'not found'}), 404
 
 @app.route('/sounds/<path:filename>')
 def serve_sound(filename):
-    filepath = SOUNDS_DIR / filename
-    if filepath.exists() and filepath.suffix.lower() in AUDIO_EXTENSIONS:
+    filepath = _resolve_sound_path(filename)
+    if filepath and filepath.exists() and filepath.suffix.lower() in AUDIO_EXTENSIONS:
         return send_file(filepath)
     return jsonify({'error': 'not found'}), 404
 
