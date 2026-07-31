@@ -71,6 +71,18 @@ def serve_sound(filename):
 def status():
     return jsonify({'status': 'ok', 'project': 'time'})
 
+@app.after_request
+def add_security_headers(response):
+    # Baseline hardening headers. Deliberately no Content-Security-Policy or
+    # Permissions-Policy here: the page relies on Google Fonts, an inline
+    # <script>, and browser APIs (Wake Lock, Vibrate, Notifications) that a
+    # hastily-written policy could easily break for real users mid-session.
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5568))
     host = '0.0.0.0' if os.environ.get('RAILWAY_ENVIRONMENT') else '127.0.0.1'
