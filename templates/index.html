@@ -1400,7 +1400,7 @@ async function renderSounds() {
         e.stopPropagation();
         if (!confirm('Delete ' + s.name + '?')) return;
         await fetch('/api/sounds/' + s.filename, {method:'DELETE'});
-        if (_activeSoundFilename === s.filename) { _activeSoundFilename = 'builtin'; _bellBuffer = null; loadBuiltInBell(); }
+        if (_activeSoundFilename === s.filename) { _activeSoundFilename = 'builtin-soft'; _bellBuffer = null; loadBuiltInBell(); }
         renderSounds();
       });
       acts.appendChild(del);
