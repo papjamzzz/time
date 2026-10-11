@@ -812,6 +812,13 @@ function nativePost(msg) {
   if (isNativeApp) window.webkit.messageHandlers.timeNative.postMessage(msg);
 }
 function nativeCancelBells() { nativePost({action: 'cancelBells'}); }
+// Apple Health Mindful Minutes (iPhone app, 2026-10-11). The native shell
+// keeps the wall-clock times, because this page's tick stops while the
+// phone is locked: 'sessionRun' when the timer runs (start or resume) with
+// the seconds left, 'sessionStop' on pause / cancel / restart. Native saves
+// the time actually sat, capped at the planned end.
+function nativeSessionRun() { nativePost({action: 'sessionRun', remainSec: remainSec}); }
+function nativeSessionStop() { nativePost({action: 'sessionStop'}); }
 
 /* ══════════════════════════════════════════════
    AUDIO
@@ -983,21 +990,21 @@ function checkBells() {
 function startTimer() {
   if (paused) {
     paused = false; running = true; setPlayState(true); acquireWakeLock();
-    nativeScheduleRemaining();
+    nativeScheduleRemaining(); nativeSessionRun();
     tickInterval = setInterval(tick, 1000); return;
   }
   running = true; paused = false;
   remainSec = totalSec = S.durationSec;
   setPlayState(true); updateDisplay(); buildIntervalDots();
   if (S.dndEnabled) triggerShortcut(S.shortcutStart);
-  scheduleBells(); acquireWakeLock();
+  scheduleBells(); acquireWakeLock(); nativeSessionRun();
   tickInterval = setInterval(tick, 1000);
 }
 
 function pauseTimer() {
   paused = true; running = false;
   clearInterval(tickInterval); setPlayState(false); releaseWakeLock();
-  nativeCancelBells();
+  nativeCancelBells(); nativeSessionStop();
   document.getElementById('timer-status').textContent = 'paused';
 }
 
@@ -1007,7 +1014,7 @@ function cancelTimer() {
   clearInterval(tickInterval);
   running = false; paused = false; remainSec = totalSec = S.durationSec;
   scheduledBells = []; setPlayState(false); releaseWakeLock();
-  nativeCancelBells();
+  nativeCancelBells(); nativeSessionStop();
   updateDisplay(); buildIntervalDots();
   document.getElementById('timer-status').textContent = '';
   document.getElementById('timer-display').classList.remove('completed');
@@ -1017,7 +1024,7 @@ function restartTimer() {
   clearInterval(tickInterval);
   running = false; paused = false; remainSec = totalSec = S.durationSec;
   scheduledBells = []; setPlayState(false); releaseWakeLock();
-  nativeCancelBells();
+  nativeCancelBells(); nativeSessionStop();
   updateDisplay(); buildIntervalDots();
   document.getElementById('timer-status').textContent = '';
   document.getElementById('timer-display').classList.remove('completed');
@@ -1037,6 +1044,7 @@ function onComplete() {
   td.classList.remove('running'); td.classList.add('completed');
   _lastSessionTs = Date.now();
   logSession(S.durationSec, true);
+  nativeSessionStop();
   setTimeout(() => { td.classList.remove('completed'); }, 1400);
 }
 
