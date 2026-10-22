@@ -3,7 +3,7 @@
 
 ## What This Is
 **Time** — functional meditation timer. Clean, minimal, contemporary. Mobile-first PWA. Companion app to Melt.
-Built on Tim's feature spec: precise bells, intervals, custom sounds, notifications, presets, iOS Shortcuts, session log with Apple Health export.
+Jeremiah's own app, built by him for himself. Features: precise bells, intervals, custom sounds, notifications, presets, iOS Shortcuts, session log with Apple Health export.
 
 ## Re-Entry Phrase
 > "Re-entry: time"
@@ -41,7 +41,7 @@ time/
 cd ~/time && make setup && make run
 ```
 
-## Tim's Feature Set (all implemented)
+## Feature Set (all implemented)
 - [x] Duration picker + custom h:mm:ss input
 - [x] Equal-length intervals with bell at each
 - [x] Upload custom audio files (WAV/MP3/AIFF/OGG/M4A)
@@ -68,7 +68,7 @@ cd ~/time && make setup && make run
 - [ ] Connect to AILIV biomarker endpoint for meditation data
 
 ## Last Session
-Built from Tim's feature spec. Full PWA: ring timer, intervals, custom sounds upload, alert modes, presets, Shortcuts, log + Apple Health + CSV export. Mobile-first, Inter + JetBrains Mono, violet/mint palette.
+Jeremiah's own app. Full PWA: ring timer, intervals, custom sounds upload, alert modes, presets, Shortcuts, log + Apple Health + CSV export. Mobile-first, Inter + JetBrains Mono, violet/mint palette.
 
 ---
 *Last updated: 2026-05-24*
